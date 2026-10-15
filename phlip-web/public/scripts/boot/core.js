@@ -1145,6 +1145,39 @@ function eventMatchesPinnedPerson(ev, pinnedChannel, conn = null) {
   return typeof channelVisibleTo === "function" && channelVisibleTo(home, pinnee, conn);
 }
 
+/** Bookings at [label] on boards shown in Personal. */
+function collectShownBoardPlaceEvents(label) {
+  const pin = String(label || "").trim();
+  if (!pin || typeof loadShownBoards !== "function") return [];
+  const out = [];
+  const seen = new Set();
+  for (const ref of loadShownBoards()) {
+    const projected = typeof resolveShownBoardProjection === "function"
+      ? resolveShownBoardProjection(ref) : null;
+    const src = projected?.contentConn;
+    const board = projected?.sourceBoard;
+    if (!src || !board) continue;
+    const evCh = typeof eventChannelForBoard === "function" ? eventChannelForBoard(board, src) : null;
+    if (!evCh) continue;
+    for (const ev of src.events || []) {
+      if (!ev || ev.channelId !== evCh.id || seen.has(ev.id)) continue;
+      if (!eventMatchesPinnedLocation(ev, pin, src)) continue;
+      seen.add(ev.id);
+      out.push({
+        ...ev,
+        _connId: src.id,
+        _linked: true,
+        _serverName: typeof connDisplayName === "function" ? connDisplayName(src) : (src.name || ""),
+        _linkedChannelName: board.name || "Board",
+        _sourceBoardId: board.id,
+        sourceChannelName: board.name || "",
+        originKind: "server",
+      });
+    }
+  }
+  return out;
+}
+
 /**
  * Events for an event-channel timeline: this channel plus linked feeds
  * (including nested pass-through). Pass [homeConn] when not the active conn.
@@ -1162,9 +1195,13 @@ function collectChannelViewEvents(channel, homeConn = activeConn()) {
   // with this channel's id. Merge both by locationLabelId instead of the
   // usual single-channelId filter.
   if (channel.pinnedLocationLabel != null) {
-    return (conn.events || []).filter(ev =>
+    const local = (conn.events || []).filter(ev =>
       ev.channelId === channel.id
       || eventMatchesPinnedLocation(ev, channel.pinnedLocationLabel, conn));
+    if (!(typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn))) return local;
+    const extra = collectShownBoardPlaceEvents(channel.pinnedLocationLabel);
+    const seen = new Set(local.map(ev => ev && ev.id));
+    return local.concat(extra.filter(ev => ev && !seen.has(ev.id)));
   }
   // § pinned people channels — same pattern keyed by the pinnee's channelVisible.
   if (channel.pinnedUserId != null) {

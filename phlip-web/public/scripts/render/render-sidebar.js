@@ -417,7 +417,8 @@ function renderSidebar(force = false) {
   const g = { channels: conn.channels || [], events: conn.events || [] };
   if (Panel.sideOpen() && (!conn || PersonalSpace.isPersonal(conn))) {
     const kind = typeof Panel.sideKind === "function" ? Panel.sideKind() : (typeof sideOverlayKind !== "undefined" ? sideOverlayKind : null);
-    if (kind !== "userSettings") closeSideOverlay();
+    // Places stays open so pin / unpin can repaint the row in place.
+    if (kind !== "userSettings" && kind !== "places") closeSideOverlay();
   }
   const titleEl = $("#group-name");
   if (titleEl) {
@@ -583,11 +584,12 @@ function renderSidebar(force = false) {
   const shownBoardList = PersonalSpace.isPersonal(conn)
     ? loadShownBoards().map(ref => resolveShownBoardProjection(ref)).filter(Boolean)
     : [];
-  // Pinned location / people boards are parked for now (helpers-part1.js).
-  const pinsParked = (typeof featureParked === "function" && featureParked("pinnedBoards"));
-  const pinnedChannels = pinsParked ? [] : (g.channels || []).filter(c =>
+  // Pinned people stay parked (helpers-part1.js). Location pins are a read-only timeline.
+  const locationsParked = (typeof featureParked === "function" && featureParked("pinnedLocations"));
+  const peopleParked = (typeof featureParked === "function" && featureParked("pinnedPeople"));
+  const pinnedChannels = locationsParked ? [] : (g.channels || []).filter(c =>
     c.kind === "event" && c.pinnedLocationLabel != null && channelShownToMe(c));
-  const pinnedPeopleChannels = PersonalSpace.isPersonal(conn) || pinsParked
+  const pinnedPeopleChannels = PersonalSpace.isPersonal(conn) || peopleParked
     ? []
     : (g.channels || []).filter(c =>
       c.kind === "event" && c.pinnedUserId != null && channelShownToMe(c));
@@ -896,15 +898,15 @@ function renderSidebar(force = false) {
       unavailable: projected.unavailable,
     });
   }
-  if (!pinsParked && (canManageChannels || pinnedChannels.length)) {
+  if (!locationsParked && pinnedChannels.length) {
     appendChannelSection(
       "Pinned locations",
       pinnedChannels,
       "pinned",
-      { addTitle: "Pin a location to a new board" },
+      { hideAdd: true },
     );
   }
-  if (!pinsParked && ((allowPinnedPeople && canManageChannels) || pinnedPeopleChannels.length)) {
+  if (!peopleParked && ((allowPinnedPeople && canManageChannels) || pinnedPeopleChannels.length)) {
     appendChannelSection(
       "Pinned people",
       pinnedPeopleChannels,

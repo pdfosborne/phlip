@@ -27,6 +27,14 @@ internal object NetworkFingerprint {
     )
 
     fun lanNetworkSnapshot(ctx: Context): LanSnapshot? {
+        return try {
+            lanNetworkSnapshotUnchecked(ctx)
+        } catch (_: SecurityException) {
+            null
+        }
+    }
+
+    private fun lanNetworkSnapshotUnchecked(ctx: Context): LanSnapshot? {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return null
         val wifiOrEth = findLanNetwork(cm)

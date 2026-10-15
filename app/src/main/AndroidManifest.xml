@@ -15,6 +15,7 @@
          ACCESS_FINE_LOCATION is separate: Wi‑Fi SSID for Approved networks labels (and
          LocalOnlyHotspot on API ≤32). SSID stays redacted without it when Nearby is
          neverForLocation. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/> <!-- LAN fingerprint: ConnectivityManager.getAllNetworks -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>

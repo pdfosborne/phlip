@@ -114,8 +114,8 @@ function locationsFor(conn) {
     return {
       ...l,
       uses: { ...(prev?.uses || {}), ...(l.uses || {}) },
-      ...(prev?.address ? { address: prev.address } : {}),
-      ...(prev?.mapUrl ? { mapUrl: prev.mapUrl } : {}),
+      ...(prev?.address && !l.address ? { address: prev.address } : {}),
+      ...(!l.mapUrl && prev?.mapUrl ? { mapUrl: prev.mapUrl } : {}),
     };
   });
 }
@@ -197,6 +197,116 @@ function recordLocationUse(place, catId, typeLabel, opts = {}) {
   loc.lastUsed = Date.now();
   persistJSON("ash_locations_v1", LOCATIONS);
   maybeCurateLocation(clean, loc.categoryId);
+}
+
+function placeTokens(label) {
+  return String(label || "").toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function placeNumbers(label) {
+  return placeTokens(label).filter(w => /^\d+$/.test(w));
+}
+
+/** Words that identify a place, without a leading "the" or a court number. */
+function placeWords(label) {
+  return placeTokens(label).filter(w => w !== "the" && w !== "a" && w !== "an" && !/^\d+$/.test(w));
+}
+
+/** Every long word plus the same numbers. Court 1 and Court 2 do not share a key. */
+function placeClusterKeys(label) {
+  const nums = placeNumbers(label);
+  const suffix = nums.length ? ":" + nums.join("-") : "";
+  return placeWords(label).filter(w => w.length >= 4).map(w => w + suffix);
+}
+
+/**
+ * Longest identifying word, with numbers so Court 1 and Court 2 stay apart.
+ */
+function placeDuplicateKey(label) {
+  const keys = placeClusterKeys(label);
+  return keys.slice().sort((a, b) => b.length - a.length)[0] || "";
+}
+
+function placeNamesLookSimilar(a, b) {
+  const left = String(a || "").trim().toLowerCase();
+  const right = String(b || "").trim().toLowerCase();
+  if (!left || !right || left === right) return false;
+  if (placeNumbers(a).join("-") !== placeNumbers(b).join("-")) return false;
+  const wordsA = new Set(placeWords(a).filter(w => w.length >= 4));
+  return placeWords(b).some(w => w.length >= 4 && wordsA.has(w));
+}
+
+function placeMapNameAgrees(label, mapName) {
+  const map = String(mapName || "").trim();
+  if (!map) return true;
+  const a = String(label || "").trim().toLowerCase();
+  const b = map.toLowerCase();
+  if (!a || a === b) return true;
+  const keyA = placeDuplicateKey(label);
+  const keyB = placeDuplicateKey(map);
+  if (keyA && keyA === keyB) return true;
+  const wordsA = placeWords(label);
+  const wordsB = placeWords(map);
+  if (!wordsA.length || !wordsB.length) return true;
+  const shorter = wordsA.length <= wordsB.length ? wordsA : wordsB;
+  const longer = wordsA.length <= wordsB.length ? wordsB : wordsA;
+  return shorter.every(w => longer.includes(w));
+}
+
+/** Places on boards shown in Personal. Read-only here; the server owns the names. */
+function collectShownBoardPlaces() {
+  const byKey = new Map();
+  const refs = typeof loadShownBoards === "function" ? loadShownBoards() : [];
+  for (const ref of refs) {
+    const projected = typeof resolveShownBoardProjection === "function"
+      ? resolveShownBoardProjection(ref) : null;
+    const src = projected?.contentConn;
+    const board = projected?.sourceBoard;
+    if (!src || !board) continue;
+    const evCh = typeof eventChannelForBoard === "function" ? eventChannelForBoard(board, src) : null;
+    const sourceName = board.name || "Board";
+    const registry = typeof locationsFor === "function" ? locationsFor(src) : (src.locations || []);
+    const mapFor = (label) => {
+      const hit = (registry || []).find(l => String(l.label || "").toLowerCase() === String(label || "").toLowerCase());
+      return String(hit?.mapUrl || "").trim();
+    };
+    const add = (label, mapUrl) => {
+      const clean = String(label || "").trim();
+      if (!clean) return;
+      const key = clean.toLowerCase();
+      let row = byKey.get(key);
+      if (!row) {
+        row = { label: clean, mapUrl: mapUrl || "", sources: [] };
+        byKey.set(key, row);
+      }
+      if (!row.mapUrl && mapUrl) row.mapUrl = mapUrl;
+      if (!row.sources.some(s => s.boardId === board.id && s.connId === src.id)) {
+        row.sources.push({ connId: src.id, boardId: board.id, name: sourceName });
+      }
+    };
+    if (!evCh) continue;
+    for (const ev of src.events || []) {
+      if (ev.channelId !== evCh.id) continue;
+      const where = String(ev._where || ev.locationLabelId || "").trim();
+      const parts = typeof parseEventPlaces === "function" ? parseEventPlaces(where) : [where];
+      const eventMap = typeof eventMapUrl === "function" ? eventMapUrl(ev) : "";
+      for (const part of parts) add(part, mapFor(part) || eventMap);
+    }
+    if (Array.isArray(evCh.enabledLocations)) {
+      for (const label of evCh.enabledLocations) add(label, mapFor(label));
+    }
+  }
+  return [...byKey.values()].sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+}
+
+function shownBoardPlaceLabel(label) {
+  const want = String(label || "").trim().toLowerCase();
+  if (!want) return "";
+  const hit = collectShownBoardPlaces().find(row => row.label.toLowerCase() === want);
+  return hit ? hit.label : "";
 }
 
 function rememberPlaceMapUrl(label, mapUrl) {

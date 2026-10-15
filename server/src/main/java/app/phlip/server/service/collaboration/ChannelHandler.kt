@@ -30,8 +30,18 @@ internal class ChannelHandler(
         val rawName = m.optString("name").trim().take(32).ifEmpty { return }
         val name = if (kind == "chat") rawName.replace(Regex("\\s+"), " ").trim() else rawName
         val pinnedLocationLabel = if (kind == "event") {
-            m.optString("pinnedLocationLabel").trim().ifEmpty { null }
-                ?.takeIf { label -> s.state.locations.any { it.label == label } }
+            val raw = m.optString("pinnedLocationLabel").trim().take(60).ifEmpty { null }
+            if (raw == null) null
+            else {
+                val existing = s.state.locations.find { it.label.equals(raw, ignoreCase = true) }
+                if (existing != null) existing.label
+                else if (s.state.locations.size >= MAX_LOCATIONS) null
+                else {
+                    val entry = placeEntry(raw)
+                    s.state.locations.add(entry)
+                    entry.label
+                }
+            }
         } else null
         val rawPinnedUserId = if (kind == "event" && pinnedLocationLabel == null) {
             m.optString("pinnedUserId").trim().ifEmpty { null }
@@ -155,6 +165,19 @@ internal class ChannelHandler(
                 applyBoardVisibility(s.state, board)
             } else {
                 ch.name = next
+            }
+        }
+        if (ch.pinnedLocationLabel != null && m.has("pinnedLocationLabel")) {
+            val raw = m.optString("pinnedLocationLabel").trim().take(60)
+            val hit = s.state.locations.find { it.label.equals(raw, ignoreCase = true) }
+            val taken = hit != null && s.state.channels.any {
+                it.id != ch.id && it.pinnedLocationLabel?.equals(hit.label, ignoreCase = true) == true
+            }
+            if (hit != null && !taken) {
+                val old = ch.pinnedLocationLabel
+                ch.pinnedLocationLabel = hit.label
+                ch.enabledLocations = mutableListOf(hit.label)
+                if (ch.name.equals(old, ignoreCase = true)) ch.name = hit.label.take(32)
             }
         }
         val board = s.state.boards.find { b -> b.id == ch.boardId }

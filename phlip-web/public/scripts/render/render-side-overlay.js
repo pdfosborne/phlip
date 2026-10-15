@@ -169,6 +169,8 @@ function refreshSideOverlay() {
     if (typeof refreshHostSettingsPanel === "function") refreshHostSettingsPanel();
   } else if (kind === "hostGuide") {
     if (typeof refreshHostingGuide === "function") refreshHostingGuide();
+  } else if (kind === "places" && typeof repaintPlacesOverlay === "function") {
+    repaintPlacesOverlay();
   }
 }
 

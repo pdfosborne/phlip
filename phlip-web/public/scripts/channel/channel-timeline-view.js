@@ -243,6 +243,17 @@ function timelineOccupancyTimeLabel(ev) {
 function timelineOccupancyGoToEvent(ev) {
   const homeId = timelineOccupancyHomeChannelId(ev);
   if (!homeId || !ev) return;
+  const sourceId = ev._connId && ev._sourceBoardId ? String(ev._connId) : "";
+  if (sourceId && sourceId !== String(S.activeConnId || "") && typeof Nav?.openProjectedChannel === "function") {
+    Nav.openProjectedChannel({
+      sourceConnId: sourceId,
+      sourceBoardId: ev._sourceBoardId,
+      sourceChannelId: homeId,
+    });
+    if (typeof openConversationsEvent === "function") openConversationsEvent(ev.id);
+    if (typeof renderView === "function") renderView();
+    return;
+  }
   if (typeof setBoardSurface === "function") setBoardSurface(homeId, "conversations");
   if (typeof Nav !== "undefined" && typeof Nav.openChannel === "function") {
     Nav.openChannel(homeId);
@@ -1164,7 +1175,7 @@ function timelineEmptyState(context, events) {
   const hidden = timelineHiddenCount(context.events, timelineViewPrefs(), Date.now()) > 0;
   return hidden
     ? { text: "No events match your filters", action: "Show all events", reset: true }
-    : { text: timelineOccupancyActive(context && context.targetChannel) ? "Nothing booked" : "No upcoming events", action: timelineShowCreateFab() ? "New event" : "", reset: false };
+    : { text: timelineOccupancyActive(context && context.targetChannel) ? "Nothing booked" : "No upcoming events", action: timelineShowCreateFab(context && context.targetChannel) ? "New event" : "", reset: false };
 }
 
 function timelinePaintEmptyState(view, context, events) {
@@ -3479,8 +3490,9 @@ function timelineWireHeader(scroller, targetChannel) {
   }
 }
 
-function timelineShowCreateFab() {
-  return typeof canCreateEvents !== "function" || canCreateEvents();
+function timelineShowCreateFab(channel) {
+  if (typeof canCreateEvents !== "function") return true;
+  return canCreateEvents(undefined, channel || null);
 }
 
 function timelineWireFocusTab() {
@@ -3616,7 +3628,7 @@ function timelineShellSignature(context) {
   const connId = (typeof S !== "undefined" && S.activeConnId) || "";
   const channelId = (context && context.targetChannel && context.targetChannel.id) || "";
   const meta = context && context.isMetaBoard ? "1" : "0";
-  const fab = timelineShowCreateFab() ? "1" : "0";
+  const fab = timelineShowCreateFab(context && context.targetChannel) ? "1" : "0";
   const cal = timelineCalendarOpen ? "1" : "0";
   const layout = timelineIsCardLayout() ? "cards" : (timelineIsListLayout() ? "list" : "timeline");
   const occupancy = timelineOccupancyActive(context && context.targetChannel) ? "occ"
@@ -3888,7 +3900,7 @@ function renderTimelineView(view, g, channel, context) {
     + '<div class="tl-focus-line" id="tl-focus-line" aria-hidden="true"></div>'
     + '<div class="events-wrap tl-events-wrap">'
     + '<div class="poll-head conv-page-head"><h2 class="poll-title">Timeline</h2>'
-    + (timelineShowCreateFab()
+    + (timelineShowCreateFab(context.targetChannel)
       ? '<button type="button" class="poll-primary" data-board-create>New event</button>'
       : "")
     + '</div>'
@@ -3897,7 +3909,7 @@ function renderTimelineView(view, g, channel, context) {
     + timelineBuildCalendar(rootEvents)
     + '</div>'
     + '<div id="tl-feed-slot"></div></div></div>'
-    + (timelineShowCreateFab()
+    + (timelineShowCreateFab(context.targetChannel)
       ? '<button type="button" class="tl-create-fab" id="tl-create-fab" aria-label="Create event">' + ic("plus") + '</button>'
       : "")
     + '<button type="button" class="tl-focus-tab is-empty" id="tl-focus-tab" aria-hidden="true">'

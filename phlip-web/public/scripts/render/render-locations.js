@@ -19,21 +19,47 @@
 function createPinnedLocationChannel(label) {
   const conn = activeConn();
   if (!conn || !canManageServer(conn)) return;
-  if ((conn.channels || []).some(c => c.kind === "event" && c.pinnedLocationLabel === label)) {
-    toast(`"${label}" already has a pinned channel`);
+  const clean = String(label || "").trim();
+  if (!clean) return;
+  if ((conn.channels || []).some(c => c.kind === "event" && c.pinnedLocationLabel != null
+    && String(c.pinnedLocationLabel).toLowerCase() === clean.toLowerCase())) {
+    toast(`"${clean}" already has a pinned channel`);
     return;
   }
+  const personal = typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn);
+  const imported = personal && typeof shownBoardPlaceLabel === "function" && shownBoardPlaceLabel(clean);
+  if (personal && !imported) {
+    const listed = (typeof locationsFor === "function" ? locationsFor(conn) : [])
+      .some(l => String(l.label || "").toLowerCase() === clean.toLowerCase());
+    if (!listed && typeof LOCATIONS !== "undefined") {
+      LOCATIONS.push({
+        label: clean,
+        categoryId: typeof inferLocationCategoryId === "function" ? inferLocationCategoryId(clean) : "other",
+        uses: {},
+      });
+      if (typeof storageSetJson === "function") storageSetJson("ash_locations_v1", LOCATIONS);
+    }
+  } else if (conn.local && !personal) {
+    if (!Array.isArray(conn.locations)) conn.locations = [];
+    if (!conn.locations.some(l => String(l.label || "").toLowerCase() === clean.toLowerCase())) {
+      conn.locations.push({
+        label: clean,
+        categoryId: typeof inferLocationCategoryId === "function" ? inferLocationCategoryId(clean) : "other",
+      });
+    }
+  }
+  const pinLabel = imported || clean;
   send({
     type: "createChannel",
-    name: label.slice(0, 32),
+    name: pinLabel.slice(0, 32),
     kind: "event",
-    pinnedLocationLabel: label,
-    enabledLocations: [label],
+    pinnedLocationLabel: pinLabel,
+    enabledLocations: [pinLabel],
     rolePerms: defaultEventChannelViewPerms(conn),
     allowedUserIds: null,
     autoIncludeNewMembers: false,
   });
-  toast(`Pinned channel created for "${label}"`);
+  toast(`Pinned channel created for "${pinLabel}"`);
 }
 
 /** § pinned location channels — sidebar "+" picker: pick a place to pin a channel to. */

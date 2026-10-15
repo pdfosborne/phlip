@@ -313,7 +313,18 @@ fun defaultCategories(): MutableList<Category> = mutableListOf(
 data class PlaceEntry(
     var label: String = "",
     var categoryId: String = "other",
+    /** Shared Google Maps / Apple Maps / OSM link. Empty when nobody has attached one. */
+    var mapUrl: String? = null,
 )
+
+/** Keep http(s) and geo map links; drop anything else. */
+fun sanitizePlaceMapUrl(raw: String?): String? {
+    val text = raw?.trim().orEmpty()
+    if (text.isEmpty() || text.length > 500) return null
+    val lower = text.lowercase()
+    if (lower.startsWith("geo:") || lower.startsWith("https://") || lower.startsWith("http://")) return text
+    return null
+}
 
 fun inferLocationCategoryId(label: String): String {
     val key = label.trim().lowercase()
@@ -354,9 +365,10 @@ class PlaceEntryListAdapter : JsonDeserializer<MutableList<PlaceEntry>>, JsonSer
                     val label = o.get("label")?.asString?.trim().orEmpty()
                     if (label.isEmpty()) null
                     else {
-                        val cat = o.get("categoryId")?.asString?.trim().orEmpty()
+                        val cat = o.get("categoryId")?.takeIf { it.isJsonPrimitive }?.asString?.trim().orEmpty()
                             .ifEmpty { inferLocationCategoryId(label) }
-                        PlaceEntry(label, cat)
+                        val mapRaw = o.get("mapUrl")?.takeIf { it.isJsonPrimitive }?.asString
+                        PlaceEntry(label, cat, sanitizePlaceMapUrl(mapRaw))
                     }
                 }
                 else -> null
@@ -380,6 +392,7 @@ class PlaceEntryListAdapter : JsonDeserializer<MutableList<PlaceEntry>>, JsonSer
             val o = JsonObject()
             o.addProperty("label", p.label)
             o.addProperty("categoryId", p.categoryId)
+            sanitizePlaceMapUrl(p.mapUrl)?.let { o.addProperty("mapUrl", it) }
             arr.add(o)
         }
         return arr

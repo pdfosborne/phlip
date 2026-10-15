@@ -4,7 +4,9 @@ import app.phlip.server.PlaceEntry
 import app.phlip.server.locationLabelIdHasPlace
 import app.phlip.server.locationLabelIdsOverlap
 import app.phlip.server.parseEventPlaces
+import app.phlip.server.retargetLocationLabelId
 import app.phlip.server.sanitizeLocationLabelId
+import app.phlip.server.sanitizePlaceMapUrl
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -34,6 +36,21 @@ class LocationLabelIdTest {
         assertEquals("Hall", sanitizeLocationLabelId("hall", registry))
         assertNull(sanitizeLocationLabelId("Court 1 · Court 3", emptyList()))
         assertEquals("Court 1", sanitizeLocationLabelId("Court 1 · Somewhere new", registry))
+    }
+
+    @Test
+    fun retargetSwapsOnePlaceAndKeepsTheJoin() {
+        assertEquals("Hall · Court 3", retargetLocationLabelId("Court 1 · Court 3", "Court 1", "Hall"))
+        assertEquals("Hall", retargetLocationLabelId("court 1", "Court 1", "Hall"))
+        assertEquals("Court 1", retargetLocationLabelId("Court 1", "Hall", "Studio"))
+    }
+
+    @Test
+    fun mapUrlKeepsWebAndGeoLinks() {
+        assertEquals("https://maps.google.com/?q=Court", sanitizePlaceMapUrl(" https://maps.google.com/?q=Court "))
+        assertEquals("geo:51.5,-0.1", sanitizePlaceMapUrl("geo:51.5,-0.1"))
+        assertNull(sanitizePlaceMapUrl("Court 1"))
+        assertNull(sanitizePlaceMapUrl(""))
     }
 
     @Test

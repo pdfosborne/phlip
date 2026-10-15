@@ -53,6 +53,7 @@ function collectPersonalSpaceMenuItems() {
   return [
     { key: "notifications", icon: "bell", label: "Notifications", title: "Notifications" },
     { key: "personal-settings", icon: "house", label: "Personal settings", title: "Personal space settings" },
+    { key: "places", icon: "map-pin", label: "Places", title: "Your places and boards you follow" },
     { key: "appearance", icon: "palette", label: "Appearance", title: "Theme and card style" },
     { key: "sound", icon: "volume-2", label: "Sound", title: "Sound" },
     { key: "calendar-time", icon: "clock", label: "Calendar & time", title: "Day hours" },

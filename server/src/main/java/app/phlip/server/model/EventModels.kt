@@ -247,6 +247,15 @@ internal fun sanitizeLocationLabelId(raw: String?, locations: List<PlaceEntry>):
     return formatEventPlaces(hits)
 }
 
+/** Swap one place inside a joined label. Other places in the join stay. */
+internal fun retargetLocationLabelId(raw: String?, from: String, to: String): String? {
+    val source = from.trim()
+    val dest = to.trim()
+    if (source.isEmpty() || dest.isEmpty()) return formatEventPlaces(parseEventPlaces(raw))
+    val parts = parseEventPlaces(raw).map { if (it.equals(source, ignoreCase = true)) dest else it }
+    return formatEventPlaces(parts)
+}
+
 internal fun locationLabelIdHasPlace(raw: String?, pinLabel: String?): Boolean {
     val pin = pinLabel?.trim().orEmpty()
     if (pin.isEmpty()) return false

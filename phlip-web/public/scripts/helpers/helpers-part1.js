@@ -9,11 +9,12 @@
  *  back to All chat. The code and data stay; set a flag to false to bring
  *  that feature back. */
 const PHLIP_PARKED = Object.freeze({
-  timeline: true,      // board menu → Timeline
-  tasks: true,         // board menu → Tasks, an event's task list
-  polls: true,         // board menu → Polls
-  pinnedBoards: true,  // sidebar → Pinned locations / Pinned people
-  manualCreate: true,  // board → "+" / New event open quick create; the form stays as Edit event (and Duplicate)
+  timeline: true,         // board menu → Timeline
+  tasks: true,            // board menu → Tasks, an event's task list
+  polls: true,            // board menu → Polls
+  pinnedLocations: false, // sidebar → Pinned locations (read-only occupancy timeline)
+  pinnedPeople: true,     // sidebar → Pinned people
+  manualCreate: true,     // board → "+" / New event open quick create; the form stays as Edit event (and Duplicate)
 });
 function featureParked(name) {
   return !!PHLIP_PARKED[name];
@@ -149,6 +150,8 @@ const APP_ICONS = {
   users: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />`,
   flag: `<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" />`,
   pin: `<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /> <circle cx="12" cy="10" r="3" />`,
+  // Pushpin. `pin` stays the location marker used across the app.
+  thumbtack: `<path d="M12 17v5" /> <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />`,
   more: `<circle cx="12" cy="12" r="1" /> <circle cx="12" cy="5" r="1" /> <circle cx="12" cy="19" r="1" />`,
   grip: `<circle cx="9" cy="5" r="1" /><circle cx="9" cy="12" r="1" /><circle cx="9" cy="19" r="1" /><circle cx="15" cy="5" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="15" cy="19" r="1" />`,
   chevronDown: `<path d="m6 9 6 6 6-6" />`,

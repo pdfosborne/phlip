@@ -138,8 +138,13 @@ internal class CatalogHandler(
             val place = when (element) {
                 is JSONObject -> {
                     val label = element.optString("label").trim().take(60)
-                    if (label.isEmpty()) null else PlaceEntry(label, element.optString("categoryId").trim()
-                        .ifEmpty { inferLocationCategoryId(label) }.take(40))
+                    if (label.isEmpty()) null
+                    else PlaceEntry(
+                        label,
+                        element.optString("categoryId").trim()
+                            .ifEmpty { inferLocationCategoryId(label) }.take(40),
+                        sanitizePlaceMapUrl(element.optString("mapUrl")),
+                    )
                 }
                 else -> {
                     val label = arr.optString(i).trim().take(60)
@@ -152,8 +157,36 @@ internal class CatalogHandler(
             fresh.add(place)
         }
         s.state.locations = fresh
+        applyLocationRenames(m.optJSONArray("renames"))
         s.operations.save()
         s.operations.pushSyncToAll()
+    }
+
+    /** Point bookings and location pins at the name that was kept. */
+    private fun applyLocationRenames(arr: org.json.JSONArray?) {
+        if (arr == null) return
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            val from = o.optString("from").trim()
+            val to = o.optString("to").trim()
+            if (from.isEmpty() || to.isEmpty()) continue
+            val dest = s.state.locations.find { it.label.equals(to, ignoreCase = true) } ?: continue
+            for (ev in s.state.events) {
+                val next = retargetLocationLabelId(ev.locationLabelId, from, dest.label) ?: continue
+                ev.locationLabelId = sanitizeLocationLabelId(next, s.state.locations)
+            }
+            for (ch in s.state.channels) {
+                if (ch.pinnedLocationLabel?.equals(from, ignoreCase = true) != true) continue
+                val taken = s.state.channels.any {
+                    it.id != ch.id && it.pinnedLocationLabel?.equals(dest.label, ignoreCase = true) == true
+                }
+                if (taken) continue
+                val old = ch.pinnedLocationLabel
+                ch.pinnedLocationLabel = dest.label
+                ch.enabledLocations = mutableListOf(dest.label)
+                if (ch.name.equals(old, ignoreCase = true)) ch.name = dest.label.take(32)
+            }
+        }
     }
 
     fun cmdAddLocation(user: User, m: JSONObject) {

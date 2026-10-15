@@ -1452,8 +1452,38 @@ button.user-avatar-preview { cursor: pointer; }
   background: color-mix(in srgb, var(--chalk) 3%, transparent);
 }
 .cat-place-row {
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
 }
+.place-tools {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.place-row-meta {
+  font-size: 12px;
+  color: var(--sage, var(--text-secondary));
+}
+.place-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.place-section-label { margin-top: 14px; }
+.cat-place-row.is-readonly .cat-item-name-input { pointer-events: none; }
+.cat-place-row.is-pinned {
+  background: color-mix(in srgb, var(--periwinkle-base, #6b63e0) 10%, transparent);
+}
+.place-pin-btn.is-on {
+  width: auto;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  color: var(--periwinkle-text, var(--chalk));
+  background: var(--periwinkle-tint-soft, color-mix(in srgb, var(--periwinkle-base, #6b63e0) 16%, transparent));
+  font-size: 12px;
+  font-weight: 700;
+}
+.place-pin-btn.is-on .place-pin-label { line-height: 1; }
 
 .cat-item-main {
   min-width: 0;

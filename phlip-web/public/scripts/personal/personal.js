@@ -11,6 +11,44 @@ function genLocalId() {
   return [...b].map(x => x.toString(16).padStart(2, "0")).join("");
 }
 
+function replacePlaceLabel(raw, from, to) {
+  if (typeof parseEventPlaces !== "function" || typeof formatEventPlaces !== "function") return null;
+  const source = String(from || "").trim().toLowerCase();
+  const dest = String(to || "").trim();
+  if (!source || !dest) return null;
+  const parts = parseEventPlaces(raw);
+  if (!parts.some(p => p.toLowerCase() === source)) return null;
+  return formatEventPlaces(parts.map(p => p.toLowerCase() === source ? dest : p));
+}
+
+/** Point local bookings and a location pin at the name that was kept. */
+function applyLocalPlaceRename(conn, from, to) {
+  const source = String(from || "").trim();
+  const dest = String(to || "").trim();
+  if (!conn || !source || !dest) return;
+  for (const ev of conn.events || []) {
+    const idNext = replacePlaceLabel(ev.locationLabelId || "", source, dest);
+    if (idNext != null) ev.locationLabelId = idNext || null;
+    const wherePlain = String(ev._where || (conn.local && ev.where && !String(ev.where).startsWith("e2e:") ? ev.where : "") || "");
+    const whereNext = replacePlaceLabel(wherePlain, source, dest);
+    if (whereNext != null) {
+      ev._where = whereNext;
+      if (!ev.where || ev.where === wherePlain) ev.where = whereNext;
+    }
+  }
+  for (const ch of conn.channels || []) {
+    if (!ch.pinnedLocationLabel || ch.pinnedLocationLabel.toLowerCase() !== source.toLowerCase()) continue;
+    const taken = (conn.channels || []).some(c =>
+      c.id !== ch.id && c.pinnedLocationLabel
+      && String(c.pinnedLocationLabel).toLowerCase() === dest.toLowerCase());
+    if (taken) continue;
+    const old = ch.pinnedLocationLabel;
+    ch.pinnedLocationLabel = dest;
+    ch.enabledLocations = [dest];
+    if (String(ch.name || "").toLowerCase() === String(old || "").toLowerCase()) ch.name = dest.slice(0, 32);
+  }
+}
+
 function localApply(conn, m) {
   if (typeof isDeviceCalendarChannel === "function" && (
       isDeviceCalendarChannel(m.channelId, conn) || isDeviceCalendarChannel(m.id, conn)
@@ -52,13 +90,18 @@ function localApply(conn, m) {
           ? locationsFor(conn)
           : (typeof LOCATIONS !== "undefined" ? LOCATIONS : []);
         const hit = (locs || []).find(l => String(l.label || "").toLowerCase() === want.toLowerCase());
-        if (!hit) return;
+        const imported = !hit && typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn)
+          && typeof shownBoardPlaceLabel === "function"
+          ? shownBoardPlaceLabel(want)
+          : "";
+        if (!hit && !imported) return;
+        const pinLabel = hit ? hit.label : imported;
         if ((conn.channels || []).some(c =>
           c.kind === "event" && c.pinnedLocationLabel != null
-          && String(c.pinnedLocationLabel).toLowerCase() === String(hit.label).toLowerCase())) {
+          && String(c.pinnedLocationLabel).toLowerCase() === pinLabel.toLowerCase())) {
           return;
         }
-        pinned = hit.label;
+        pinned = pinLabel;
       }
       const welcomeChannel = kind === "chat" && !!m.welcomeChannel;
       const board = m.boardId && (conn.boards || []).find(b => b.id === m.boardId);
@@ -241,6 +284,31 @@ function localApply(conn, m) {
       break;
     }
 
+    case "updateLocations": {
+      if (typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn)) return;
+      if (typeof canManageServer === "function" && !canManageServer(conn)) return;
+      const rows = Array.isArray(m.locations) ? m.locations : [];
+      const next = [];
+      const seen = new Set();
+      for (const row of rows) {
+        const label = String(row && row.label != null ? row.label : row || "").trim().slice(0, 60);
+        if (!label) continue;
+        const key = label.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const mapRaw = String(row?.mapUrl || "").trim();
+        const mapUrl = /^https?:\/\//i.test(mapRaw) || /^geo:/i.test(mapRaw) ? mapRaw.slice(0, 500) : "";
+        const categoryId = String(row?.categoryId || "other").trim().slice(0, 40) || "other";
+        next.push({ label, categoryId, ...(mapUrl ? { mapUrl } : {}) });
+      }
+      conn.locations = next;
+      for (const pair of (Array.isArray(m.renames) ? m.renames : [])) {
+        applyLocalPlaceRename(conn, pair && pair.from, pair && pair.to);
+      }
+      refresh();
+      break;
+    }
+
     case "updateChannel": {
       const ch = conn.channels.find(c => c.id === m.channelId);
       if (!ch) return;
@@ -262,6 +330,24 @@ function localApply(conn, m) {
       ch.minRole = "viewer";
       if (ch.kind === "event" && "enabledCardIds" in m) ch.enabledCardIds = m.enabledCardIds || null;
       if (ch.kind === "event" && "enabledCategoryIds" in m) ch.enabledCategoryIds = m.enabledCategoryIds || null;
+      if (ch.kind === "event" && ch.pinnedLocationLabel != null && m.pinnedLocationLabel != null) {
+        const next = String(m.pinnedLocationLabel || "").trim().slice(0, 60);
+        const listed = (typeof locationsFor === "function" ? locationsFor(conn) : [])
+          .find(l => String(l.label || "").toLowerCase() === next.toLowerCase());
+        const imported = !listed && typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn)
+          && typeof shownBoardPlaceLabel === "function"
+          ? shownBoardPlaceLabel(next)
+          : "";
+        const label = listed?.label || imported;
+        const taken = label && (conn.channels || []).some(c =>
+          c.id !== ch.id && c.pinnedLocationLabel
+          && String(c.pinnedLocationLabel).toLowerCase() === label.toLowerCase());
+        if (label && !taken) {
+          const old = ch.pinnedLocationLabel;
+          ch.pinnedLocationLabel = label;
+          if (String(ch.name || "").toLowerCase() === String(old || "").toLowerCase()) ch.name = label.slice(0, 32);
+        }
+      }
       if (ch.kind === "event" && ch.pinnedLocationLabel != null) {
         // Pinned boards stay locked to their place — ignore location filter edits.
         ch.enabledLocations = [ch.pinnedLocationLabel];
