@@ -3248,6 +3248,17 @@ button.user-avatar-preview { cursor: pointer; }
   background: var(--success);
 }
 .side-host-reach[hidden] { display: none !important; }
+.side-host-reach.is-readonly,
+.side-host-reach.is-readonly:disabled {
+  cursor: default;
+  grid-template-columns: auto auto 1fr;
+  color: var(--sage);
+}
+.side-host-reach.is-readonly:active,
+.side-host-reach.is-readonly.is-pressed,
+.side-host-reach.is-readonly:disabled:active {
+  background: var(--bottle-2);
+}
 /* Setup navigation uses Menu CTA; enabling sharing commits with Primary. */
 .host-primary-btn.sharing-menu-cta {
   background: var(--menu-button-base);

@@ -447,6 +447,7 @@ function boardViewAccessMeta(ch, conn = activeConn()) {
       icon: "shield",
       label: admins ? "Admins" : "Moderators+",
       detail: staff.label || (admins ? "Admins only" : "Moderators and admins"),
+      color: staff.color,
     };
   }
   const hasPerms = ch.rolePerms && typeof ch.rolePerms === "object"
@@ -470,17 +471,27 @@ function boardViewAccessMeta(ch, conn = activeConn()) {
   // role), else the custom roles it's for ("Committee, Drivers +1").
   const custom = typeof customRolesOf === "function" ? customRolesOf(conn) : [];
   const keys = marks.map(m => m.key);
-  const customNames = marks.filter(m => custom.some(r => r.id === m.key)).map(m => m.label).filter(Boolean);
+  const customMarks = marks.filter(m => custom.some(r => r.id === m.key));
+  const customNames = customMarks.map(m => m.label).filter(Boolean);
   let label;
+  let color = "";
   if (keys.includes(ROLE_USER)) label = "Members";
-  else if (customNames.length) label = customNames.length > 2 ? `${customNames.slice(0, 2).join(", ")} +${customNames.length - 2}` : customNames.join(", ");
-  else if (keys.includes(ROLE_MODERATOR)) label = "Moderators+";
-  else label = names.slice(0, 2).join(", ");
+  else if (customNames.length) {
+    label = customNames.length > 2 ? `${customNames.slice(0, 2).join(", ")} +${customNames.length - 2}` : customNames.join(", ");
+    const first = customMarks.find(m => m.label);
+    color = (first && typeof roleDisplayColor === "function")
+      ? roleDisplayColor(first.key, conn)
+      : (first?.color || "");
+  } else if (keys.includes(ROLE_MODERATOR)) {
+    label = "Moderators+";
+    color = typeof roleDisplayColor === "function" ? roleDisplayColor(ROLE_MODERATOR, conn) : "";
+  } else label = names.slice(0, 2).join(", ");
   return {
     kind: "roles",
     icon: "shield-user",
     label,
     detail: `Viewable by ${names.join(", ")}`,
+    ...(color ? { color } : {}),
   };
 }
 

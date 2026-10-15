@@ -278,6 +278,8 @@ function ensureSideNavTaps() {
       if (typeof sharePersonalInviteLink === "function") sharePersonalInviteLink(activeConn());
     };
     if (target.closest("#side-device-chip")) return () => {
+      const chip = document.getElementById("side-device-chip");
+      if (!chip || chip.hidden || chip.disabled || chip.classList.contains("is-readonly")) return;
       const c = activeConn();
       if (c?.drive) {
         if (typeof shareDriveFolder === "function") shareDriveFolder(c);
@@ -449,8 +451,11 @@ function renderSidebar(force = false) {
 
   let deviceChip = document.getElementById("side-device-chip");
   const hostRow = document.getElementById("sidebar-head-host-row") || head;
-  const showDeviceChip = (typeof isHostedBridgeConn === "function" && isHostedBridgeConn(conn))
+  const personalSpace = typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn);
+  const hostInteractive = (typeof isHostedBridgeConn === "function" && isHostedBridgeConn(conn))
     || !!(conn && conn.drive);
+  const showDeviceChip = !!conn && !personalSpace;
+  const readOnlyChip = showDeviceChip && !hostInteractive;
   if (head && showDeviceChip) {
     if (!deviceChip) {
       deviceChip = document.createElement("button");
@@ -470,34 +475,55 @@ function renderSidebar(force = false) {
     const status = String(displayStatus || "offline").replace(/[^a-z-]/g, "") || "offline";
     const feelState = String(feel.state || "").replace(/[^a-z-]/g, "");
     deviceChip.className = "side-host-reach"
+      + (readOnlyChip ? " is-readonly" : "")
       + (feel.state === "connected" ? " is-feel-connected" : "")
       + (feel.state === "reaching" ? " is-feel-reaching" : "")
       + (feel.state === "unreachable" ? " is-feel-unreachable" : "")
       + (feel.tone === "aging" ? " is-feel-aging" : "")
       + (feel.tone === "stale" ? " is-feel-stale" : "");
     deviceChip.hidden = false;
+    deviceChip.disabled = readOnlyChip;
     const live = status === "online" || feel.state === "connected";
-    const hostState = feel.state === "reaching" ? "Syncing" : (live ? "Live" : "Paused");
-    const medium = reach.type === "Drive" ? "Drive"
-      : reach.type === "Public" || reach.type === "Internet" ? "Internet"
-      : "Device only";
-    const deviceOnly = medium === "Device only";
-    const isDrive = medium === "Drive";
-    const hostCopy = deviceOnly ? "Device only · Set up sharing" : `${medium} · ${hostState}`;
-    deviceChip.innerHTML = `${ic("server", "ico-inline side-host-reach-icon")}` +
-      `<span class="side-host-reach-label">${deviceOnly ? "Device only" : (isDrive ? "Drive" : "Sharing")}</span>` +
-      `<span class="side-host-reach-status">${deviceOnly ? "Set up sharing" : `<span class="rail-dot ${status}${feelState ? ` feel-${feelState}` : ""}"></span>${esc(hostCopy)}`}</span>` +
-      `${ic("chevron-right", "ico-inline side-host-reach-chevron")}`;
-    const feelLabel = feel.label || (feel.state === "reaching" ? "Syncing…" : "");
-    deviceChip.title = deviceOnly ? "Device only — set up sharing"
-      : isDrive ? "Shared through Google Drive"
-      : [hostCopy, feelLabel, "Sharing settings"].filter(Boolean).join(" — ");
-    deviceChip.setAttribute("aria-label", deviceOnly ? "Device only. Set up sharing"
-      : isDrive ? "Drive. Share the board folder"
-      : `${hostCopy} sharing settings`);
+    const statusName = typeof railDotStatusLabel === "function"
+      ? railDotStatusLabel(conn, displayStatus, feel)
+      : (feel.state === "reaching" ? "Syncing" : (live ? "Online" : "Offline"));
+    const age = String(feel.label || "").trim();
+    const memberN = (conn.members || []).length;
+    const memberBit = `${memberN} ${memberN === 1 ? "Member" : "Members"}`;
+    const dot = `<span class="rail-dot ${status}${feelState ? ` feel-${feelState}` : ""}"></span>`;
+    if (readOnlyChip) {
+      const detail = [age, memberBit].filter(Boolean).join(" · ");
+      deviceChip.innerHTML = `${ic("server", "ico-inline side-host-reach-icon")}` +
+        `<span class="side-host-reach-label">${esc(statusName)}</span>` +
+        `<span class="side-host-reach-status">${dot}${esc(detail)}</span>`;
+      const summary = [statusName, detail].filter(Boolean).join(" · ");
+      deviceChip.title = summary;
+      deviceChip.setAttribute("aria-label", summary);
+    } else {
+      const hostState = feel.state === "reaching" ? "Syncing" : (live ? "Live" : "Paused");
+      const medium = reach.type === "Drive" ? "Drive"
+        : reach.type === "Public" || reach.type === "Internet" ? "Internet"
+        : "Device only";
+      const deviceOnly = medium === "Device only";
+      const isDrive = medium === "Drive";
+      const hostCopy = deviceOnly ? "Device only · Set up sharing" : `${medium} · ${hostState}`;
+      deviceChip.innerHTML = `${ic("server", "ico-inline side-host-reach-icon")}` +
+        `<span class="side-host-reach-label">${deviceOnly ? "Device only" : (isDrive ? "Drive" : "Sharing")}</span>` +
+        `<span class="side-host-reach-status">${deviceOnly ? "Set up sharing" : `${dot}${esc(hostCopy)}`}</span>` +
+        `${ic("chevron-right", "ico-inline side-host-reach-chevron")}`;
+      const feelLabel = feel.label || (feel.state === "reaching" ? "Syncing…" : "");
+      deviceChip.title = deviceOnly ? "Device only — set up sharing"
+        : isDrive ? "Shared through Google Drive"
+        : [hostCopy, feelLabel, "Sharing settings"].filter(Boolean).join(" — ");
+      deviceChip.setAttribute("aria-label", deviceOnly ? "Device only. Set up sharing"
+        : isDrive ? "Drive. Share the board folder"
+        : `${hostCopy} sharing settings`);
+    }
     deviceChip.onclick = null; // ensureSideNavTaps
   } else if (deviceChip) {
     deviceChip.hidden = true;
+    deviceChip.disabled = false;
+    deviceChip.classList.remove("is-readonly");
   }
 
   // Invite — same row as the hosting chip. Only when a share path is actually live.
@@ -536,7 +562,9 @@ function renderSidebar(force = false) {
       if (menuBtnEl?.parentNode === head) menuBtnEl.after(connectionStatus);
       else head.appendChild(connectionStatus);
     }
-    if (PersonalSpace.isPersonal(conn)) {
+    if (showDeviceChip) {
+      connectionStatus.hidden = true;
+    } else if (PersonalSpace.isPersonal(conn)) {
       connectionStatus.textContent = "This device";
       connectionStatus.hidden = false;
     } else {
@@ -846,8 +874,11 @@ function renderSidebar(force = false) {
       // or "N people" when private. The full list is in the board's settings.
       return access.label || "";
     })();
+    const permColor = access?.color && /^#[0-9a-fA-F]{3,8}$/.test(String(access.color))
+      ? String(access.color)
+      : "";
     const permHtml = permText
-      ? `<span class="side-board-perm">${accessIco}<span class="side-board-perm-label">${esc(permText)}</span></span>`
+      ? `<span class="side-board-perm${permColor ? " has-role-color" : ""}"${permColor ? ` style="--perm-color:${esc(permColor)}"` : ""}>${accessIco}<span class="side-board-perm-label">${esc(permText)}</span></span>`
       : "";
     const metaParts = [ownerHtml, permHtml, sourceHtml].filter(Boolean);
     const metaSpeak = [isPersonalBoard ? "Just me" : "", permText || "", originSpeak].filter(Boolean).join(", ");

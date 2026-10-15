@@ -2326,7 +2326,8 @@ a.powered-by-phlip.side-powered-by {
 .side-label[data-side-section="board"] {
   border-top: 1px solid var(--moss);
   margin-top: 6px;
-  padding: 6px 10px 0;
+  min-height: 44px;
+  padding: 6px 10px 4px;
 }
 .side-label[data-side-section="pinned"],
 .side-label[data-side-section="pinned-people"] {
@@ -2443,7 +2444,7 @@ a.powered-by-phlip.side-powered-by {
   flex: 0 1 auto;
   font-weight: 700;
   font-size: 13.5px;
-  line-height: 1.2;
+  line-height: 1;
   color: var(--text-secondary);
 }
 .side-board-head-label .side-item-name {
@@ -2454,7 +2455,7 @@ a.powered-by-phlip.side-powered-by {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1;
 }
 .side-board-glyph-wrap {
   position: relative;
@@ -2473,6 +2474,8 @@ a.powered-by-phlip.side-powered-by {
   opacity: .6;
   font-size: 14px;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 .side-board-shown-mark {
   position: absolute;
@@ -2517,12 +2520,12 @@ a.powered-by-phlip.side-powered-by {
   min-width: 0;
   flex: 0 1 auto;
   padding-left: 0;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
-  line-height: 1.2;
+  line-height: 1;
 }
 .side-board-head-meta > span {
   display: inline-flex;
@@ -2530,7 +2533,7 @@ a.powered-by-phlip.side-powered-by {
   gap: 4px;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 .side-board-perm {
   display: inline-flex;
@@ -2538,9 +2541,19 @@ a.powered-by-phlip.side-powered-by {
   gap: 4px;
   min-width: 0;
   flex-shrink: 1;
-  overflow: hidden;
+  overflow: visible;
+  line-height: 1;
+}
+.side-board-perm.has-role-color,
+.side-board-perm.has-role-color .side-board-access-ico {
+  color: color-mix(in srgb, var(--perm-color) 85%, var(--text-primary));
+  font-weight: 650;
+  opacity: 1;
 }
 .side-board-perm-label {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2557,10 +2570,15 @@ a.powered-by-phlip.side-powered-by {
 }
 .side-board-access-ico {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
   flex-shrink: 0;
+  width: 12px;
+  height: 12px;
   color: var(--text-secondary);
   opacity: 0.85;
-  line-height: 0;
+  line-height: 1;
 }
 .side-board-access-ico .ico,
 .side-board-access-ico .ico-inline {

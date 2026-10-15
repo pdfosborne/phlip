@@ -20,7 +20,7 @@
   const FLICK_PX_MS = 0.5;
   const FLICK_MIN_PX = 24;
   const OUTSIDE_TAP_MS = 450;
-  const PRESSED_SEL = ".tl-event-row, .side-item, .tl-create-fab, #btn-back, .rail-btn, .composer button, .tl-card-deck-nav";
+  const PRESSED_SEL = ".tl-event-row, .side-item, .tl-create-fab, .rail-btn, .composer button, .tl-card-deck-nav";
 
   function axisLocked(dx, dy) {
     const ax = Math.abs(Number(dx) || 0);

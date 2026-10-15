@@ -54,8 +54,8 @@
   .main-head .back:hover { color: var(--chalk); background: var(--bottle); border-color: var(--sage); }
 }
 
-.main-head .back:active,
-.main-head .back.is-pressed {
+.main-head .back:active:not(.is-menu):not(.is-personal),
+.main-head .back.is-pressed:not(.is-menu):not(.is-personal) {
   background: var(--surface-1);
 }
 .main-head .back .ico { width: 18px; height: 18px; }
@@ -65,25 +65,6 @@
   background: transparent;
   border: none;
   border-radius: 0;
-  color: var(--chalk);
-}
-@media (hover: hover) and (pointer: fine) {
-  .main-head .back.is-menu:hover,
-  .main-head .back.is-personal:hover {
-    background: var(--surface-1);
-    border: none;
-    border-radius: 10px;
-    color: var(--chalk);
-  }
-}
-
-.main-head .back.is-menu:active,
-.main-head .back.is-personal:active,
-.main-head .back.is-menu.is-pressed,
-.main-head .back.is-personal.is-pressed {
-  background: var(--surface-1);
-  border: none;
-  border-radius: 10px;
   color: var(--chalk);
 }
 .main-head .back.is-personal .app-logo-icon {
@@ -2129,11 +2110,24 @@ body.timeline-settings-open .events-scroll {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-32);
-  height: var(--space-32);
+  width: auto;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 3px;
+  box-sizing: border-box;
   flex-shrink: 0;
   overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--surface-3-strong);
   color: var(--text-primary);
+}
+.nav-server-icon:has(img) {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+}
+.main-head .nav-server-icon .rail-label {
+  font-size: 10px;
+  letter-spacing: -0.08em;
+  white-space: nowrap;
 }
