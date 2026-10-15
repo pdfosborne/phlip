@@ -10,10 +10,13 @@ GitHub Action [`.github/workflows/publish-demo.yml`](../../.github/workflows/pub
 
 Required GitHub Actions secrets (Settings → Secrets and variables → Actions):
 
-- `CLOUDFLARE_API_TOKEN` — API token with **Account / Workers Scripts / Edit**, **Zone / Workers Routes / Edit**, and **Zone / DNS / Edit** on `phlipapp.com` (DNS is needed so Wrangler can create the `demo` Custom Domain)
-- `CLOUDFLARE_ACCOUNT_ID` — from the Cloudflare dashboard sidebar
+- `CLOUDFLARE_API_TOKEN` — an account API token limited to this deploy:
+  - **Workers Editor** for all Workers (legacy name: Workers Scripts Edit). **Admin** is only needed to create a Worker that does not exist yet.
+  - **Zone → Workers Routes → Edit** and **Zone → DNS → Edit**, both limited to the `phlipapp.com` zone.
+  - Do not grant Containers, R2, KV, Pages, Agents, Builds, Observability, or Tail.
+- `CLOUDFLARE_ACCOUNT_ID` — the account ID from the Cloudflare dashboard sidebar (the hex string in `dash.cloudflare.com/<account-id>/`).
 
-Create the token at https://dash.cloudflare.com/profile/api-tokens (template **Edit Cloudflare Workers**, then add **Zone / DNS / Edit**). After secrets exist, push to `main` or re-run **Publish demo**. The first successful deploy creates the Worker and attaches `https://demo.phlipapp.com/`.
+Create the token from the account’s API tokens page, not a user-profile token. After secrets exist, push to `main` or re-run **Publish demo**. The Worker `phlip-demo` serves `https://demo.phlipapp.com/`.
 
 Local preview:
 
