@@ -700,8 +700,14 @@ function setServerProfileOverride(serverId, patch) {
   const me = loadMe();
   const next = { ...(map[id] || {}), ...(patch || {}) };
   if ("localPhoto" in (patch || {}) && !patch.localPhoto) delete next.localPhoto;
+  if ("name" in (patch || {})) {
+    const nm = String(patch.name || "").trim().slice(0, 24);
+    if (nm) next.name = nm;
+    else delete next.name;
+  }
+  const refName = next.name || me.name;
   if (patch?.offlineAvatar) {
-    next.offlineAvatar = normalizeOfflineAvatar(patch.offlineAvatar, me.id, me.name);
+    next.offlineAvatar = normalizeOfflineAvatar(patch.offlineAvatar, me.id, refName);
   }
   map[id] = next;
   localStorage.setItem(SERVER_PROFILES_KEY, JSON.stringify(map));

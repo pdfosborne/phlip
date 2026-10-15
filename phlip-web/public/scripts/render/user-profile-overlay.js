@@ -47,14 +47,28 @@ function userProfileIco(name) {
   return typeof ic === "function" ? ic(name, "ico-inline") : "";
 }
 
+function userProfileHasServerOverride(conn) {
+  if (!conn || (typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn)) || !conn.me) return false;
+  if (typeof getServerProfileOverride === "function" && getServerProfileOverride(conn.id)) return true;
+  if (conn.me.nameHostSet) return true;
+  const me = typeof loadMe === "function" ? (loadMe() || {}) : {};
+  const defName = String(me.name || "").trim();
+  const srvName = String(conn.me.name || "").trim();
+  return Boolean(defName && srvName && defName !== srvName);
+}
+
 function userProfileHomeHTML() {
   const conn = typeof activeConn === "function" ? activeConn() : null;
   const me = typeof loadMe === "function" ? (loadMe() || {}) : {};
-  const name = String(conn?.me?.name || me.name || "").trim() || "You";
+  const name = typeof sidebarUserEffectiveName === "function"
+    ? sidebarUserEffectiveName(conn)
+    : (String(me.name || conn?.me?.name || "").trim() || "You");
   const personal = typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn);
+  const serverName = conn?.name || conn?.hostName || "Phlip";
+  const overridden = userProfileHasServerOverride(conn);
   const server = personal
-    ? "Personal space"
-    : (conn?.name || conn?.hostName || "Phlip");
+    ? "Default profile · Personal space"
+    : (overridden ? `Custom profile on ${serverName}` : `Default profile · ${serverName}`);
   const avatar = typeof sidebarUserAvatarHTML === "function"
     ? sidebarUserAvatarHTML(conn)
     : "";
@@ -78,14 +92,12 @@ function userProfileHomeHTML() {
       </div>
       <div class="channel-settings-sheet-actions sidebar-menu-actions">
         ${row("personal", "house", "Personal settings")}
-        ${row("style", "palette", "Appearance")}
         ${row("sound", "volume-2", "Sound")}
-        ${row("other", "clock", "Calendar & time")}
       </div>
     </div>`;
 }
 
-function showUserProfilePane(pane) {
+function showUserProfilePane(pane, opts = {}) {
   const overlay = document.querySelector(".user-profile-overlay");
   if (!overlay) return;
   const body = overlay.querySelector("#user-profile-body");
@@ -123,15 +135,20 @@ function showUserProfilePane(pane) {
     if (title) title.textContent = "Edit profile";
     const conn = typeof activeConn === "function" ? activeConn() : null;
     const personal = typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn);
+    const serverName = conn?.name || conn?.hostName || "this server";
+    const startOverridden = Boolean(opts.serverOverride || userProfileHasServerOverride(conn));
     body.innerHTML = `
       <section class="user-profile-edit-block">
-        <h5 class="user-profile-edit-label">You</h5>
+        <h5 class="user-profile-edit-label">Default profile</h5>
         <div id="user-profile-you-mount"></div>
       </section>
-      ${personal ? "" : `
+      ${personal || !conn?.me ? "" : `
       <section class="user-profile-edit-block">
-        <h5 class="user-profile-edit-label">This server</h5>
-        <div id="user-profile-server-mount"></div>
+        <label class="server-settings-row side-toggle console-row" for="user-profile-server-override">
+          <span>Override profile for ${esc(serverName)}</span>
+          <input type="checkbox" id="user-profile-server-override"${startOverridden ? " checked" : ""}>
+        </label>
+        <div id="user-profile-server-mount"${startOverridden ? "" : " hidden"}></div>
       </section>`}`;
     const you = body.querySelector("#user-profile-you-mount");
     if (you && typeof mountUserYouProfile === "function") {
@@ -139,10 +156,46 @@ function showUserProfilePane(pane) {
         onSaved: () => { try { showUserProfilePane("home"); } catch {} },
       });
     }
+    const toggle = body.querySelector("#user-profile-server-override");
     const server = body.querySelector("#user-profile-server-mount");
-    if (server && typeof mountServerOptionsForm === "function") {
+    const syncOverrideMount = async (on) => {
+      if (!server || !conn) return;
+      if (typeof _userProfileFlush === "function") {
+        if (on) {
+          try { await _userProfileFlush(); } catch {}
+        }
+        _userProfileFlush = null;
+      }
+      server.hidden = !on;
+      if (!on) {
+        server.innerHTML = "";
+        if (typeof clearServerProfileOverride === "function") clearServerProfileOverride(conn.id);
+        const me = typeof loadMe === "function" ? (loadMe() || {}) : {};
+        const defName = String(me.name || "").trim();
+        if (defName && !conn.me?.nameHostSet) {
+          if (conn.status === "online" && conn.token && typeof setServerDisplayNameWithCollision === "function") {
+            try { await setServerDisplayNameWithCollision(conn, defName); } catch {}
+          } else if (typeof applyLocalDisplayName === "function") {
+            applyLocalDisplayName(conn, defName);
+          }
+        }
+        conn._lastLivePicSent = undefined;
+        conn._lastProfilePicSent = undefined;
+        try { if (typeof syncMyProfile === "function") await syncMyProfile(conn); } catch {}
+        try { renderSidebar(true); } catch {}
+        try { renderView(); } catch {}
+        return;
+      }
+      if (typeof mountServerOptionsForm === "function") {
+        _userProfileFlush = mountServerOptionsForm(server, conn) || null;
+      }
+    };
+    if (startOverridden && server && typeof mountServerOptionsForm === "function") {
       _userProfileFlush = mountServerOptionsForm(server, conn) || null;
     }
+    toggle?.addEventListener("change", () => {
+      void syncOverrideMount(!!toggle.checked);
+    });
     return;
   }
 
@@ -156,21 +209,6 @@ function showUserProfilePane(pane) {
     if (typeof mountUserPersonalSpaceSettings === "function") {
       mountUserPersonalSpaceSettings(body, { close: closeUserProfileOverlay });
     }
-    return;
-  }
-  if (_userProfilePane === "style") {
-    if (title) title.textContent = "App style";
-    if (typeof openCosmeticsModal === "function") {
-      openCosmeticsModal({ root: body });
-      _userProfileFlush = typeof body._ashCosmeticsFlush === "function"
-        ? body._ashCosmeticsFlush
-        : null;
-    }
-    return;
-  }
-  if (_userProfilePane === "other") {
-    if (title) title.textContent = "Calendar & time";
-    if (typeof mountUserOtherSettings === "function") mountUserOtherSettings(body);
   }
 }
 
@@ -235,5 +273,5 @@ function openUserProfileOverlay(opts = {}) {
   overlay.querySelector("#user-profile-title")?.addEventListener("click", () => {
     if (_userProfilePane !== "home") showUserProfilePane("home");
   });
-  showUserProfilePane(opts.pane || "home");
+  showUserProfilePane(opts.pane || "home", opts);
 }

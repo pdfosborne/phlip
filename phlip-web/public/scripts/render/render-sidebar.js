@@ -1126,16 +1126,37 @@ function mergedUnreadNotificationCount() {
   return n;
 }
 
+function sidebarUserEffectiveName(conn = activeConn()) {
+  const me = typeof loadMe === "function" ? (loadMe() || {}) : {};
+  const defName = String(me.name || "").trim();
+  const personal = !conn || (typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn));
+  if (personal) return defName || "You";
+  const override = typeof getServerProfileOverride === "function" ? getServerProfileOverride(conn.id) : null;
+  if (override?.name) return String(override.name).trim();
+  const srvName = String(conn?.me?.name || "").trim();
+  if (conn?.me?.nameHostSet && srvName) return srvName;
+  if (override && srvName) return srvName;
+  return defName || srvName || "You";
+}
+
 function sidebarUserAvatarHTML(conn) {
   const me = typeof loadMe === "function" ? (loadMe() || {}) : {};
-  const name = String(conn?.me?.name || me.name || "").trim() || "Me";
-  const uid = conn?.me?.id || me.id;
-  if (uid && typeof avatarStyle === "function") {
-    const face = typeof avatarFaceHtml === "function" ? avatarFaceHtml(uid, name) : "";
-    return `<span class="side-user-avatar" style="${avatarStyle(uid)}" aria-hidden="true">${face}</span>`;
+  const name = sidebarUserEffectiveName(conn);
+  const uid = conn?.me?.id || me.id || "me";
+  const personal = !conn || (typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn));
+  const pic = typeof memberProfilePic === "function" && uid ? memberProfilePic(uid) : "";
+  if (pic) {
+    return `<span class="side-user-avatar" style="background-image:url('${pic.replace(/'/g, "%27")}');background-size:cover;background-position:center" aria-hidden="true"></span>`;
   }
-  const letters = typeof initials === "function" ? initials(name) : name.slice(0, 1);
-  return `<span class="side-user-avatar" aria-hidden="true">${esc(letters || "?")}</span>`;
+  const off = (!personal && typeof effectiveServerOfflineAvatar === "function")
+    ? effectiveServerOfflineAvatar(conn.id)
+    : (typeof normalizeOfflineAvatar === "function" ? normalizeOfflineAvatar(me.offlineAvatar, uid, name) : null);
+  const color = off?.color || (typeof hueFor === "function" ? hueFor(uid).bg : "#4A5262");
+  const fg = typeof contrastOn === "function" ? contrastOn(color) : "#fff";
+  const face = (off?.mode === "draw" && off.draw && typeof ic === "function")
+    ? ic(off.draw, "avatar-face-ico")
+    : esc(off?.text || (typeof initials === "function" ? initials(name) : name.slice(0, 1)) || "?");
+  return `<span class="side-user-avatar" style="background:${color};color:${fg}" aria-hidden="true">${face}</span>`;
 }
 
 function paintSidebarHelpAndLeave(list, conn) {
@@ -1157,8 +1178,7 @@ function paintSidebarUserPanel(conn) {
   window.Onboarding?.paintChecklist?.(conn);
   const panel = document.getElementById("side-user-panel");
   if (!panel) return;
-  const me = typeof loadMe === "function" ? (loadMe() || {}) : {};
-  const name = String(conn?.me?.name || me.name || "").trim() || "Me";
+  const name = sidebarUserEffectiveName(conn);
   const userSheetOpen = !!document.querySelector(".user-profile-overlay");
   panel.innerHTML = `
     <button type="button" class="side-user-chip" id="side-user-menu-btn" aria-haspopup="dialog" aria-expanded="${userSheetOpen ? "true" : "false"}" title="Account menu" aria-label="Account menu, ${esc(name)}">

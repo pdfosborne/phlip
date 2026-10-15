@@ -383,12 +383,14 @@ function mountServerOptionsForm(root, conn = null) {
     const name = await setServerDisplayNameWithCollision(c, next);
     if (!name) return false;
     const defPhoto = me.localPhoto || "";
-    const defOffline = normalizeOfflineAvatar(me.offlineAvatar, me.id, me.name);
+    const defName = String(me.name || "").trim();
+    const defOffline = normalizeOfflineAvatar(me.offlineAvatar, me.id, defName);
     draftOffline = normalizeOfflineAvatar(draftOffline, me.id, name);
+    const nameChanged = Boolean(defName && name !== defName);
     const offlineChanged = JSON.stringify(draftOffline) !== JSON.stringify(defOffline);
     const photoChanged = !served && (draftPhoto || "") !== defPhoto;
-    if (offlineChanged || photoChanged || getServerProfileOverride(c.id)) {
-      const patch = { offlineAvatar: draftOffline };
+    if (nameChanged || offlineChanged || photoChanged || getServerProfileOverride(c.id)) {
+      const patch = { offlineAvatar: draftOffline, name: nameChanged ? name : "" };
       if (!served) patch.localPhoto = draftPhoto || "";
       setServerProfileOverride(c.id, patch);
     }
@@ -405,8 +407,17 @@ function mountServerOptionsForm(root, conn = null) {
 
   overlay.querySelector("#so-use-defaults").onclick = async () => {
     clearServerProfileOverride(c.id);
+    const defName = String(me.name || "").trim();
+    if (inp && defName && !c.me?.nameHostSet) inp.value = defName;
+    if (defName && !c.me?.nameHostSet) {
+      if (c.status === "online" && c.token) {
+        try { await setServerDisplayNameWithCollision(c, defName); } catch {}
+      } else {
+        applyLocalDisplayName(c, defName);
+      }
+    }
     draftPhoto = served ? "" : (me.localPhoto || "");
-    draftOffline = normalizeOfflineAvatar(me.offlineAvatar, me.id, me.name);
+    draftOffline = normalizeOfflineAvatar(me.offlineAvatar, me.id, defName || me.name);
     soLettersFollowName = typeof isPlaceholderAvatarLetters === "function"
       ? isPlaceholderAvatarLetters(draftOffline.text, me.name || "?")
         || draftOffline.text === normalizeAvatarLetters("", me.name || "?")
@@ -448,7 +459,7 @@ function openServerOptionsPanel(conn = null) {
     return;
   }
   if (typeof openUserProfileOverlay === "function") {
-    openUserProfileOverlay({ pane: "edit" });
+    openUserProfileOverlay({ pane: "edit", serverOverride: true });
     return;
   }
 }
@@ -542,15 +553,18 @@ function mountUserYouProfile(root, { onSaved } = {}) {
     if (onboardingProfileChanged) window.OnboardingBus?.emit?.("profile:saved");
     if (typeof storageSetText === "function") storageSetText("ash_me_named", "1");
     else try { localStorage.setItem("ash_me_named", "1"); } catch {}
-    // Mirror profile name onto local host membership so footers / labels update immediately.
+    // Keep non-overridden servers aligned with the default profile name.
     for (const c of Object.values(S.conns || {})) {
       if (!c || PersonalSpace.isPersonal(c) || !c.me) continue;
-      const hostish = !!(c.me.isHost
-        || (typeof effectiveRole === "function" && effectiveRole(c.me) === ROLE_HOST));
-      if (!hostish) continue;
-      c.me.name = name;
-      if (Array.isArray(c.members)) {
-        c.members = c.members.map(u => (u && u.id === c.me.id) ? { ...u, name } : u);
+      if (c.me.nameHostSet) continue;
+      const override = typeof getServerProfileOverride === "function"
+        ? getServerProfileOverride(c.id)
+        : null;
+      if (override?.name) continue;
+      if (c.status === "online" && c.token && !(c.me.isHost || (typeof effectiveRole === "function" && effectiveRole(c.me) === ROLE_HOST))) {
+        void setServerDisplayNameWithCollision(c, name);
+      } else {
+        applyLocalDisplayName(c, name);
       }
     }
     for (const c of Object.values(S.conns || {})) {
@@ -710,10 +724,6 @@ function mountUserSoundSettings(root) {
             <span class="feel-strength-val" id="feel-sound-val">55%</span>
           </label>
           <div class="feel-type-table" role="group" aria-label="Sound by action">
-            <div class="feel-type-row">
-              <span class="feel-type-label">Card flicks</span>
-              <label class="feel-type-check"><input type="checkbox" data-feel-key="soundFlick" aria-label="Sound for card flicks"></label>
-            </div>
             <div class="feel-type-row">
               <span class="feel-type-label">Scrolling</span>
               <label class="feel-type-check"><input type="checkbox" data-feel-key="soundScroll" aria-label="Sound for scrolling"></label>

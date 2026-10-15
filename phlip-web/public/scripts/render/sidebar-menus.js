@@ -55,9 +55,7 @@ function collectPersonalSpaceMenuItems() {
   return [
     { key: "personal-settings", icon: "house", label: "Personal settings", title: "Personal space settings" },
     { key: "places", icon: "map-pin", label: "Places", title: "Your places and boards you follow" },
-    { key: "appearance", icon: "palette", label: "Appearance", title: "Theme and card style" },
     { key: "sound", icon: "volume-2", label: "Sound", title: "Sound" },
-    { key: "calendar-time", icon: "clock", label: "Calendar & time", title: "Day hours" },
     { key: "help", icon: "circle-question-mark", label: "Help & legal", title: "Legal, contact, and FAQs" },
   ];
 }
@@ -270,12 +268,6 @@ function collectUserMenuItems(conn = activeConn()) {
     label: "User settings",
     title: "User settings",
   });
-  items.push({
-    key: "app-style",
-    icon: "palette",
-    label: "App style settings",
-    title: "Theme and card style",
-  });
   return items;
 }
 
@@ -332,25 +324,13 @@ function runSidebarMenuAction(key) {
     if (typeof openUserProfileOverlay === "function") openUserProfileOverlay({ pane: "personal" });
     return;
   }
-  if (key === "appearance") {
-    if (typeof openUserProfileOverlay === "function") openUserProfileOverlay({ pane: "style" });
-    return;
-  }
   if (key === "sound") {
     if (typeof openUserProfileOverlay === "function") openUserProfileOverlay({ pane: "sound" });
-    return;
-  }
-  if (key === "calendar-time") {
-    if (typeof openUserProfileOverlay === "function") openUserProfileOverlay({ pane: "other" });
     return;
   }
   if (key === "user-settings") {
     if (typeof openUserSettings === "function") openUserSettings();
     else if (typeof openUserSettingsModal === "function") openUserSettingsModal();
-    return;
-  }
-  if (key === "app-style") {
-    if (typeof openCosmeticsModal === "function") openCosmeticsModal();
     return;
   }
   if (key === "invite") {
@@ -487,7 +467,7 @@ function bindServerMenuOverlayClicks(overlay) {
 const SERVER_MENU_PANES = new Set([
   "members", "info", "places", "drawings", "roles", "event-options", "moderate",
   "auto-delete", "server-data", "demo-users", "delete-boards", "delete-server", "help",
-  "personal-settings", "appearance", "sound", "calendar-time",
+  "personal-settings", "sound",
 ]);
 
 const SERVER_MENU_PANE_TITLES = {
@@ -505,9 +485,7 @@ const SERVER_MENU_PANE_TITLES = {
   "delete-server": "Delete server",
   help: "Help & legal",
   "personal-settings": "Personal settings",
-  appearance: "Appearance",
   sound: "Sound",
-  "calendar-time": "Calendar & time",
 };
 
 function flushServerMenuEdits() {
@@ -711,21 +689,8 @@ function mountServerMenuPaneBody(pane, body, conn) {
     mountUserPersonalSpaceSettings(body, { close: closeSidebarMenuSheet });
     return;
   }
-  if (pane === "appearance") {
-    if (typeof openCosmeticsModal === "function") {
-      openCosmeticsModal({ root: body });
-      _serverMenuFlush = typeof body._ashCosmeticsFlush === "function" ? body._ashCosmeticsFlush : null;
-    } else {
-      body.innerHTML = `<p class="empty-note">Appearance settings aren’t available in this build.</p>`;
-    }
-    return;
-  }
   if (pane === "sound" && typeof mountUserSoundSettings === "function") {
     mountUserSoundSettings(body);
-    return;
-  }
-  if (pane === "calendar-time" && typeof mountUserOtherSettings === "function") {
-    mountUserOtherSettings(body);
   }
 }
 
