@@ -131,7 +131,12 @@ const DemoBoot = (() => {
       try { await DemoStore.saveAll(bundle); } catch {}
     }
     const nav = applySnapshot(bundle);
-    if (fresh) applyFixtureLinks(bundle.links);
+    if (fresh) {
+      applyFixtureLinks(bundle.links);
+      if (typeof saveRailOrder === "function") {
+        saveRailOrder(["demo-family", "demo-friends", "demo-tennis"]);
+      }
+    }
     for (const conn of Object.values(S.conns)) {
       try { await decryptAll(conn); } catch {}
       try { seedEventSeenCursors(conn); } catch {}

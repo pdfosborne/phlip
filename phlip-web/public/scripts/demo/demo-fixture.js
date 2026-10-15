@@ -1,4 +1,4 @@
-/* demo-fixture.js — relative-date seed for Personal space, Home, and Friends.
+/* demo-fixture.js — relative-date seed for Personal space, Home, Friends, and Tennis club.
  *
  * Globals in:  defaultOfflineAvatar, defaultPersonalMyPlansChannel (at build time)
  * Globals out: DemoFixture
@@ -11,7 +11,7 @@ const DemoFixture = (() => {
   "use strict";
 
   const YOU_ID = "demo-you";
-  const VERSION = 10;
+  const VERSION = 11;
 
   function avatar(id, name) {
     if (typeof defaultOfflineAvatar === "function") return defaultOfflineAvatar(id, name);
@@ -19,15 +19,38 @@ const DemoFixture = (() => {
     return { mode: "letters", text: letters, color: "#a9c8ef" };
   }
 
-  function person(id, name, role) {
+  function person(id, name, role, roleTagIds) {
     const r = role || "user";
     return {
       id,
       name,
       role: r,
       isHost: r === "host",
+      roleTagIds: roleTagIds || [],
       offlineAvatar: avatar(id, name),
     };
+  }
+
+  /** Same person as the signed-in You, with this server's role and tags. */
+  function asYou(me, role, roleTagIds) {
+    const r = role || "user";
+    return { ...me, role: r, isHost: r === "host", roleTagIds: roleTagIds || [] };
+  }
+
+  /** Board visibility: listed roles can see it. Host and admin always can. */
+  function roleView(roleIds) {
+    const map = {
+      admin: { view: false },
+      moderator: { view: false },
+      user: { view: false },
+      viewer: { view: false },
+    };
+    for (const id of roleIds || []) map[id] = { view: true };
+    return map;
+  }
+
+  function roleTag(id, name, color, sortOrder) {
+    return { id, name, color, sortOrder, baseRole: "user" };
   }
 
   function you(role) {
@@ -162,6 +185,11 @@ const DemoFixture = (() => {
       linkedChatChannelId: chat.id,
       mirrorActivity: rest.mirrorActivity !== false,
     });
+    if (rest.rolePerms) {
+      board.rolePerms = rest.rolePerms;
+      chat.rolePerms = rest.rolePerms;
+      event.rolePerms = rest.rolePerms;
+    }
     return { board, event, chat };
   }
 
@@ -251,6 +279,7 @@ const DemoFixture = (() => {
       serverSettings: partial.serverSettings || serverSettings(),
       iconText: partial.iconText || "",
       serverPic: "",
+      customRoles: partial.customRoles || [],
       joinTag: "",
       status: "online",
       local: true,
@@ -371,12 +400,19 @@ const DemoFixture = (() => {
     });
   }
 
-  /** Family — a single shared board, plus per-person "follow" boards for Mum & Dad. */
+  /** Family — shared Family board, an Adults board for the admins, and follow boards for Mum & Dad. */
   function familyGroup(me) {
+    const you = asYou(me, "admin");
     const mum = person("demo-mum", "Mum", "host");
-    const dad = person("demo-dad", "Dad", "user");
+    const dad = person("demo-dad", "Dad", "admin");
+    const jamie = person("demo-jamie", "Jamie", "user");
     const welcome = welcomeChat("fa-welcome");
     const family = boardPair("fa", "Family", { eventId: "fa-events", chatId: "fa-chat" });
+    const adults = boardPair("fa-adults", "Adults", {
+      eventId: "fa-adults",
+      chatId: "fa-adults-chat",
+      rolePerms: roleView(["admin"]),
+    });
     const roast = ev({
       id: "fa-roast",
       title: "Sunday roast",
@@ -386,7 +422,7 @@ const DemoFixture = (() => {
       channelId: family.event.id,
       createdBy: mum.id,
       createdByName: mum.name,
-      rsvps: { [mum.id]: "going", [dad.id]: "going", [me.id]: "going" },
+      rsvps: { [mum.id]: "going", [dad.id]: "going", [you.id]: "going", [jamie.id]: "going" },
       cat: "food",
       icon: "dinner",
       duration: "3h",
@@ -400,7 +436,7 @@ const DemoFixture = (() => {
       channelId: family.event.id,
       createdBy: dad.id,
       createdByName: dad.name,
-      rsvps: { [dad.id]: "going", [mum.id]: "going" },
+      rsvps: { [dad.id]: "going", [mum.id]: "going", [jamie.id]: "going" },
       cat: "social",
       icon: "party",
       duration: "1h",
@@ -414,27 +450,42 @@ const DemoFixture = (() => {
       channelId: family.event.id,
       createdBy: mum.id,
       createdByName: mum.name,
-      rsvps: { [mum.id]: "going", [me.id]: "going" },
+      rsvps: { [mum.id]: "going", [you.id]: "going" },
       cat: "other",
       icon: "custom",
       duration: "15m",
     });
+    const dateNight = ev({
+      id: "fa-date",
+      title: "Date night",
+      when: atDay(4, 19, 30),
+      where: "Home",
+      details: "Jamie's at a friend's. Just the adults.",
+      channelId: adults.event.id,
+      createdBy: mum.id,
+      createdByName: mum.name,
+      rsvps: { [mum.id]: "going", [dad.id]: "going", [you.id]: "going" },
+      cat: "food",
+      icon: "dinner",
+      duration: "3h",
+    });
     return localConn({
       id: "demo-family",
       name: "Home",
-      iconText: "Ho",
-      me,
-      members: [mum, dad, me],
+      iconText: "🏠",
+      me: you,
+      members: [mum, dad, you, jamie],
       // §pinned-people — Mum & Dad each get a followable board of their own plans.
       serverSettings: serverSettings({ allowPinnedPeople: true }),
-      boards: [family.board],
+      boards: [family.board, adults.board],
       channels: [
         welcome,
         family.event, family.chat,
+        adults.event, adults.chat,
         pinPerson("fa-pin-mum", mum),
         pinPerson("fa-pin-dad", dad),
       ],
-      events: [roast, walk, bins],
+      events: [roast, walk, bins, dateNight],
       locations: [
         { label: "Home", categoryId: "other" },
         { label: "Park", categoryId: "entertainment" },
@@ -489,6 +540,18 @@ const DemoFixture = (() => {
             eventId: bins.id, eventTitle: bins.title,
           }),
         ],
+        [adults.chat.id]: [
+          msg({
+            id: "fa-a1", channelId: adults.chat.id, userId: mum.id, name: mum.name,
+            text: "Date night Thursday — Jamie's out", ts: atDay(0, 11, 5),
+            eventId: dateNight.id, eventTitle: dateNight.title,
+          }),
+          msg({
+            id: "fa-a2", channelId: adults.chat.id, userId: dad.id, name: dad.name,
+            text: "I'll book somewhere that isn't the kitchen", ts: atDay(0, 11, 18),
+            eventId: dateNight.id, eventTitle: dateNight.title,
+          }),
+        ],
         [family.event.id]: [
           msg({
             id: "fa-e1", channelId: family.event.id, userId: mum.id, name: mum.name,
@@ -500,27 +563,26 @@ const DemoFixture = (() => {
     });
   }
 
-  /** Friends — a central London hangout everyone shares, plus a uni sub-group and a home sub-group. */
+  /** Friends — London is open; Uni and Home boards are limited to those roles. */
   function friendsGroup(me) {
-    const sam = person("demo-sam", "Sam", "host");
-    const jo = person("demo-jo", "Jo", "user");
-    const ada = person("demo-ada", "Ada", "user");
-    const leo = person("demo-leo", "Leo", "user");
-    const zara = person("demo-zara", "Zara", "user");
-    const uniIds = [me.id, sam.id, jo.id, leo.id];
-    const homeIds = [me.id, sam.id, ada.id, zara.id];
+    const you = asYou(me, "user", ["role-uni", "role-home"]);
+    const sam = person("demo-sam", "Sam", "host", ["role-uni", "role-home"]);
+    const jo = person("demo-jo", "Jo", "user", ["role-uni"]);
+    const ada = person("demo-ada", "Ada", "user", ["role-home"]);
+    const leo = person("demo-leo", "Leo", "user", ["role-uni"]);
+    const zara = person("demo-zara", "Zara", "user", ["role-home"]);
     const welcome = welcomeChat("fr-welcome");
     const CENTRAL_PLACE = "The Anchor, Borough";
     const london = boardPair("fr-london", "London meetup", { eventId: "fr-london", chatId: "fr-london-chat" });
     const uni = boardPair("fr-uni", "Uni friends", {
-      ...privateAllow(uniIds),
       eventId: "fr-uni",
       chatId: "fr-uni-chat",
+      rolePerms: roleView(["role-uni"]),
     });
     const home = boardPair("fr-home", "Home friends", {
-      ...privateAllow(homeIds),
       eventId: "fr-home",
       chatId: "fr-home-chat",
+      rolePerms: roleView(["role-home"]),
     });
     const quiz = ev({
       id: "fr-quiz",
@@ -585,9 +647,13 @@ const DemoFixture = (() => {
     return localConn({
       id: "demo-friends",
       name: "Friends",
-      iconText: "Fr",
-      me,
-      members: [sam, me, jo, ada, leo, zara],
+      iconText: "👥",
+      me: you,
+      members: [sam, you, jo, ada, leo, zara],
+      customRoles: [
+        roleTag("role-uni", "Uni", "#2A9D8F", 0),
+        roleTag("role-home", "Home", "#C47B4A", 1),
+      ],
       boards: [london.board, uni.board, home.board],
       channels: [
         welcome,
@@ -669,13 +735,159 @@ const DemoFixture = (() => {
     });
   }
 
+  /** Riverside Tennis — Club is open; Matches is for Players; Committee is for Committee. */
+  function tennisGroup(me) {
+    const you = asYou(me, "user", ["role-player", "role-committee"]);
+    const priya = person("demo-priya", "Priya", "host", ["role-committee"]);
+    const max = person("demo-max", "Max", "user", ["role-player", "role-committee"]);
+    const nia = person("demo-nia", "Nia", "user", ["role-player"]);
+    const lee = person("demo-lee", "Lee", "user", ["role-player"]);
+    const kim = person("demo-kim", "Kim", "user", ["role-player"]);
+    const welcome = welcomeChat("te-welcome");
+    const club = boardPair("te-club", "Club", { eventId: "te-club", chatId: "te-club-chat" });
+    const matches = boardPair("te-matches", "Matches", {
+      eventId: "te-matches",
+      chatId: "te-matches-chat",
+      rolePerms: roleView(["role-player"]),
+    });
+    const committee = boardPair("te-committee", "Committee", {
+      eventId: "te-committee",
+      chatId: "te-committee-chat",
+      rolePerms: roleView(["role-committee"]),
+    });
+    const social = ev({
+      id: "te-social",
+      title: "Club social",
+      when: atDay(5, 19, 0),
+      where: "Clubhouse",
+      details: "Drinks after the last court. Everyone welcome.",
+      channelId: club.event.id,
+      createdBy: priya.id,
+      createdByName: priya.name,
+      rsvps: { [priya.id]: "going", [you.id]: "going", [nia.id]: "going", [kim.id]: "going" },
+      cat: "social",
+      icon: "party",
+      duration: "2h",
+    });
+    const ladder = ev({
+      id: "te-ladder",
+      title: "Tuesday ladder",
+      when: atDay(((2 - new Date().getDay() + 7) % 7) || 7, 18, 30),
+      where: "Court 1 · Court 2",
+      details: "Doubles rotation. Players only — bring a spare can.",
+      channelId: matches.event.id,
+      createdBy: priya.id,
+      createdByName: priya.name,
+      rsvps: { [priya.id]: "going", [max.id]: "going", [you.id]: "going", [lee.id]: "going", [nia.id]: "out" },
+      cat: "sport",
+      icon: "sport",
+      duration: "2h",
+    });
+    const match = ev({
+      id: "te-match",
+      title: "Saturday match vs Riverside",
+      when: atDay(((6 - new Date().getDay() + 7) % 7) || 7, 10, 0),
+      where: "Court 1",
+      details: "Home fixture. Team sheet is on the Matches board.",
+      channelId: matches.event.id,
+      createdBy: max.id,
+      createdByName: max.name,
+      rsvps: { [max.id]: "going", [priya.id]: "going", [you.id]: "going", [lee.id]: "going" },
+      cat: "sport",
+      icon: "sport",
+      duration: "2h",
+    });
+    const catchup = ev({
+      id: "te-committee",
+      title: "Committee catch-up",
+      when: atDay(4, 20, 0),
+      where: "Clubhouse",
+      details: "Subs and the Riverside fixture. Committee only.",
+      channelId: committee.event.id,
+      createdBy: priya.id,
+      createdByName: priya.name,
+      rsvps: { [priya.id]: "going", [max.id]: "going", [you.id]: "going" },
+      cat: "other",
+      icon: "custom",
+      duration: "1h",
+    });
+    return localConn({
+      id: "demo-tennis",
+      name: "Tennis club",
+      iconText: "🎾",
+      me: you,
+      members: [priya, you, max, nia, lee, kim],
+      customRoles: [
+        roleTag("role-player", "Players", "#3D8B6E", 0),
+        roleTag("role-committee", "Committee", "#8B5E3C", 1),
+      ],
+      serverSettings: serverSettings({ allowMultiLocations: true }),
+      boards: [club.board, matches.board, committee.board],
+      channels: [
+        welcome,
+        club.event, club.chat,
+        matches.event, matches.chat,
+        committee.event, committee.chat,
+      ],
+      events: [social, ladder, match, catchup],
+      locations: [
+        { label: "Court 1", categoryId: "sport" },
+        { label: "Court 2", categoryId: "sport" },
+        { label: "Clubhouse", categoryId: "other" },
+      ],
+      messages: {
+        [club.chat.id]: [
+          msg({
+            id: "te-c1", channelId: club.chat.id, userId: priya.id, name: priya.name,
+            text: "Social on Friday in the clubhouse — bring whoever you like", ts: atDay(0, 8, 10),
+            eventId: social.id, eventTitle: social.title,
+          }),
+          msg({
+            id: "te-c2", channelId: club.chat.id, userId: kim.id, name: kim.name,
+            text: "I'll be there after work", ts: atDay(0, 8, 24),
+            eventId: social.id, eventTitle: social.title,
+          }),
+        ],
+        [matches.chat.id]: [
+          msg({
+            id: "te-m1", channelId: matches.chat.id, userId: priya.id, name: priya.name,
+            text: "Ladder is Courts 1 and 2 — need four for doubles", ts: atDay(0, 8, 30),
+            eventId: ladder.id, eventTitle: ladder.title,
+          }),
+          msg({
+            id: "te-m2", channelId: matches.chat.id, userId: max.id, name: max.name,
+            text: "Saturday vs Riverside is Court 1. I'll post the team sheet", ts: atDay(0, 9, 5),
+            eventId: match.id, eventTitle: match.title,
+          }),
+          msg({
+            id: "te-m3", channelId: matches.chat.id, userId: lee.id, name: lee.name,
+            text: "I can play Saturday", ts: atDay(0, 9, 16),
+            eventId: match.id, eventTitle: match.title,
+          }),
+        ],
+        [committee.chat.id]: [
+          msg({
+            id: "te-k1", channelId: committee.chat.id, userId: priya.id, name: priya.name,
+            text: "Catch-up Thursday. Subs and the Riverside fixture — not for club chat", ts: atDay(0, 7, 50),
+            eventId: catchup.id, eventTitle: catchup.title,
+          }),
+          msg({
+            id: "te-k2", channelId: committee.chat.id, userId: max.id, name: max.name,
+            text: "I'll bring the subs spreadsheet", ts: atDay(0, 8, 2),
+            eventId: catchup.id, eventTitle: catchup.title,
+          }),
+        ],
+      },
+    });
+  }
 
   function build() {
     const me = you("user");
     const conns = {
       personal: personalSpace(me),
-      "demo-friends": friendsGroup(me),
       "demo-family": familyGroup(me),
+      "demo-friends": friendsGroup(me),
+      "demo-tennis": tennisGroup(me),
     };
     return {
       fixtureVersion: VERSION,
