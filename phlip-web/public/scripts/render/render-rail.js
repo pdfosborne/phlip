@@ -276,6 +276,11 @@ function connIconText(conn) {
 function connIconHTML(conn) {
   if (!conn || PersonalSpace.isPersonal(conn)) return ic("user-lock");
   if (conn.serverPic) return `<img class="rail-pic" src="${esc(conn.serverPic)}" alt="">`;
+  const named = String(conn.serverIcon || "").trim();
+  if (named && typeof ic === "function") {
+    const mark = ic(named);
+    if (mark.indexOf("<svg") >= 0) return mark;
+  }
   return `<span class="rail-label">${esc(connIconText(conn))}</span>`;
 }
 

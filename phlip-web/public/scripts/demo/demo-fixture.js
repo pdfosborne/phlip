@@ -11,7 +11,7 @@ const DemoFixture = (() => {
   "use strict";
 
   const YOU_ID = "demo-you";
-  const VERSION = 11;
+  const VERSION = 12;
 
   function avatar(id, name) {
     if (typeof defaultOfflineAvatar === "function") return defaultOfflineAvatar(id, name);
@@ -278,6 +278,7 @@ const DemoFixture = (() => {
       blocked: [],
       serverSettings: partial.serverSettings || serverSettings(),
       iconText: partial.iconText || "",
+      serverIcon: partial.serverIcon || "",
       serverPic: "",
       customRoles: partial.customRoles || [],
       joinTag: "",
@@ -472,7 +473,8 @@ const DemoFixture = (() => {
     return localConn({
       id: "demo-family",
       name: "Home",
-      iconText: "🏠",
+      iconText: "",
+      serverIcon: "house",
       me: you,
       members: [mum, dad, you, jamie],
       // §pinned-people — Mum & Dad each get a followable board of their own plans.
@@ -647,7 +649,8 @@ const DemoFixture = (() => {
     return localConn({
       id: "demo-friends",
       name: "Friends",
-      iconText: "👥",
+      iconText: "",
+      serverIcon: "users",
       me: you,
       members: [sam, you, jo, ada, leo, zara],
       customRoles: [
@@ -814,7 +817,8 @@ const DemoFixture = (() => {
     return localConn({
       id: "demo-tennis",
       name: "Tennis club",
-      iconText: "🎾",
+      iconText: "",
+      serverIcon: "tennis-ball",
       me: you,
       members: [priya, you, max, nia, lee, kim],
       customRoles: [

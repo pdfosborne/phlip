@@ -7,7 +7,7 @@
  *
  * Bump CACHE whenever the cached shell set changes so old caches are purged.
  */
-const SHELL_VER = "20261015v6";
+const SHELL_VER = "20261015v7";
 const SCOPE_IS_DEMO = (() => {
   try {
     const u = new URL(self.registration.scope);
