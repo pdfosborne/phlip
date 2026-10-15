@@ -15,6 +15,8 @@ const PHLIP_PARKED = Object.freeze({
   pinnedLocations: false, // sidebar → Pinned locations (read-only occupancy timeline)
   pinnedPeople: true,     // sidebar → Pinned people
   manualCreate: true,     // board → "+" / New event open quick create; the form stays as Edit event (and Duplicate)
+  notifications: true,    // server / personal menus → Notifications
+  archive: true,          // menus and board pages → Archive
 });
 function featureParked(name) {
   return !!PHLIP_PARKED[name];
@@ -61,13 +63,17 @@ function normalizeIconText(s) {
   return [...String(s || "").trim()].slice(0, 4).join("");
 }
 
-/** Default server rail glyph from name when no custom iconText is set. */
+/** Letters and digits only, so "Home · Demo" becomes HOME + DEMO. */
+function serverIconLetters(part) {
+  return String(part || "").replace(/[^\p{L}\p{N}]/gu, "");
+}
+
+/** Default server rail glyph: four letters (two from each of the first two words, or the first four of one word). */
 function serverIconShorthand(name) {
-  const parts = String(name || "?").trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0].slice(0, 2) + parts[1].slice(0, 2)).slice(0, 4).toUpperCase();
-  }
-  return (parts[0] || "?").slice(0, 4).toUpperCase();
+  const parts = String(name || "?").trim().split(/\s+/).map(serverIconLetters).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 4).toUpperCase();
+  return (parts[0].slice(0, 2) + parts[1].slice(0, 2)).slice(0, 4).toUpperCase();
 }
 
 /** Phone / sliding-sheet shell vs laptop persistent rail+sidebar. Matches style.css 900px. */

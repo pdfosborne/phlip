@@ -1374,9 +1374,14 @@ html[data-served-host] .rail-btn.rail-personal {
 .sidebar-head-host-row[hidden] { display: none !important; }
 .rail-label {
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
+  letter-spacing: -0.06em;
+}
+.icon-preview .rail-label {
+  font-size: 14px;
   letter-spacing: -0.04em;
+  text-align: center;
 }
 .sidebar-body {
   flex: 1;

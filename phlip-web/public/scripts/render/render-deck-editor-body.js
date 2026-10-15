@@ -40,7 +40,7 @@ function repaintPlacesOverlay() {
   if (typeof _placesRepaint === "function") _placesRepaint();
 }
 
-function openPlacesManagerBody(conn) {
+function openPlacesManagerBody(conn, hostEl) {
   const personal = typeof PersonalSpace !== "undefined" && PersonalSpace.isPersonal(conn);
   const source = typeof harvestUsedPlaces === "function"
     ? harvestUsedPlaces(conn)
@@ -250,26 +250,31 @@ function openPlacesManagerBody(conn) {
     for (const pair of list) await rewriteVisiblePlace(pair.from, pair.to);
   };
 
-  const openedHost = openSideOverlay({
-    kind: "places",
-    title: "Places",
-    bodyClass: ["side-overlay-categories", "deck-editor-side-body"],
-    mount: (body) => {
-      body.innerHTML = `
+  const placesMarkup = `
       <p class="cat-hint">${personal
         ? "Your places can be renamed, merged, and pinned. Places from boards you show here can be pinned, not edited."
         : "Places used on this server. Check map links, merge similar names, and pin a place to see its bookings."}</p>
       <div class="place-tools"><button type="button" id="place-check-maps">Check maps</button></div>
       <div id="deck-dup-banner"></div>
       <div id="deck-rows" class="deck-editor-list"></div>`;
-    },
-  });
-  if (!openedHost || sideOverlayKind !== "places") return;
-  const overlay = openedHost;
-  const headActions = document.getElementById("side-overlay-actions");
-  if (headActions) {
-    headActions.innerHTML = "";
-    headActions.hidden = true;
+  let overlay = hostEl || null;
+  if (overlay) {
+    overlay.classList.add("deck-editor-side-body");
+    overlay.innerHTML = placesMarkup;
+  } else {
+    const openedHost = openSideOverlay({
+      kind: "places",
+      title: "Places",
+      bodyClass: ["side-overlay-categories", "deck-editor-side-body"],
+      mount: (body) => { body.innerHTML = placesMarkup; },
+    });
+    if (!openedHost || sideOverlayKind !== "places") return;
+    overlay = openedHost;
+    const headActions = document.getElementById("side-overlay-actions");
+    if (headActions) {
+      headActions.innerHTML = "";
+      headActions.hidden = true;
+    }
   }
   const dupBannerEl = overlay.querySelector("#deck-dup-banner");
 
@@ -518,7 +523,7 @@ function openPlacesManagerBody(conn) {
   };
 
   const placeRowByName = (name) => {
-    const host = document.getElementById("side-overlay-body");
+    const host = overlay;
     const want = String(name || "").trim().toLowerCase();
     if (!host || !want) return null;
     return [...host.querySelectorAll(".cat-place-row")].find(rowEl => {
@@ -531,7 +536,7 @@ function openPlacesManagerBody(conn) {
   };
 
   function renderMainList() {
-    const live = document.getElementById("side-overlay-body")?.querySelector("#deck-rows");
+    const live = overlay?.querySelector("#deck-rows");
     if (!live) return;
     live.innerHTML = "";
     renderDupBanner();
@@ -592,7 +597,7 @@ function openPlacesManagerBody(conn) {
   overlay.querySelector("#place-check-maps")?.addEventListener("click", () => { void checkMaps(); });
   _placesRepaint = renderMainList;
 
-  sideOverlayBeforeClose = () => {
+  const flushPlaces = () => {
     _placesRepaint = null;
     const renames = inputRenames();
     savePlaceList(renames);
@@ -604,20 +609,30 @@ function openPlacesManagerBody(conn) {
       for (const pair of renames) void rewriteVisiblePlace(pair.from, pair.to);
     }
   };
+  if (hostEl) {
+    renderMainList();
+    return flushPlaces;
+  }
+  sideOverlayBeforeClose = flushPlaces;
   renderMainList();
 }
 
-function openDrawingsManagerBody(conn) {
-  const openedHost = openSideOverlay({
-    kind: "drawings",
-    title: "Drawings",
-    bodyClass: ["side-overlay-categories", "deck-editor-side-body"],
-    mount: (body) => {
-      body.innerHTML = `<div id="deck-rows" class="deck-editor-list"></div>`;
-    },
-  });
-  if (!openedHost || sideOverlayKind !== "drawings") return;
-  const overlay = openedHost;
+function openDrawingsManagerBody(conn, hostEl) {
+  const drawingsMarkup = `<div id="deck-rows" class="deck-editor-list"></div>`;
+  let overlay = hostEl || null;
+  if (overlay) {
+    overlay.classList.add("deck-editor-side-body");
+    overlay.innerHTML = drawingsMarkup;
+  } else {
+    const openedHost = openSideOverlay({
+      kind: "drawings",
+      title: "Drawings",
+      bodyClass: ["side-overlay-categories", "deck-editor-side-body"],
+      mount: (body) => { body.innerHTML = drawingsMarkup; },
+    });
+    if (!openedHost || sideOverlayKind !== "drawings") return;
+    overlay = openedHost;
+  }
   const rowsEl = overlay.querySelector("#deck-rows");
 
   function renderDrawings() {
@@ -674,6 +689,6 @@ function openDrawingsManagerBody(conn) {
     });
   }
 
-  sideOverlayBeforeClose = null;
+  if (!hostEl) sideOverlayBeforeClose = null;
   renderDrawings();
 }

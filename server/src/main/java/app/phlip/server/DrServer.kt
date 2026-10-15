@@ -1327,7 +1327,7 @@ class DrServer(
         if (dirty) save()
     }
 
-    /** Host-only: update the short rail/nav glyph (1–2 characters). */
+    /** Host-only: update the short rail/nav glyph (up to 4 characters). */
     fun setIconText(text: String) {
         state.iconText = sanitizeIconText(text)
         save()
@@ -1342,16 +1342,18 @@ class DrServer(
     private fun sanitizeIconText(raw: String): String {
         val cps = raw.trim().codePoints().toArray()
         if (cps.isEmpty()) return ""
-        val n = minOf(2, cps.size)
+        val n = minOf(4, cps.size)
         return String(cps, 0, n)
     }
 
     private fun initialsOf(name: String): String {
-        val parts = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        val parts = name.trim().split(Regex("\\s+"))
+            .map { word -> word.filter { it.isLetterOrDigit() } }
+            .filter { it.isNotEmpty() }
         return when {
             parts.isEmpty() -> "?"
-            parts.size == 1 -> parts[0].take(2)
-            else -> "${parts[0].first()}${parts[1].first()}"
+            parts.size == 1 -> parts[0].take(4).uppercase()
+            else -> (parts[0].take(2) + parts[1].take(2)).take(4).uppercase()
         }
     }
 

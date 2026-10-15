@@ -151,7 +151,7 @@ function paintBoardOptions() {
       ${pageBtn("chat", "message-circle", "All chat")}
       ${pageBtn("people", "users", "People", countLabel(people.length, "member", "members"))}
       ${(typeof featureParked === "function" && featureParked("timeline")) ? "" : pageBtn("timeline", "calendar-days", "Timeline", upcoming.length ? countLabel(upcoming.length, "upcoming", "upcoming") : "None upcoming")}
-      ${pageBtn("archive", "archive", "Archive")}
+      ${(typeof featureParked === "function" && featureParked("archive")) ? "" : pageBtn("archive", "archive", "Archive")}
       <button type="button" data-board-settings>${typeof ic === "function" ? ic("settings") : ""}<span class="board-page-label">Settings</span></button>
     </nav>
     <label class="board-opt-line">

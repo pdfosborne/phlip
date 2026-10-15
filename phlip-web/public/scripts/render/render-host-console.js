@@ -94,39 +94,6 @@ function fillConsoleEventsSettings(root, conn) {
     "New events need approval unless a channel opts out", "New events no longer need approval by default",
     { defaultOn: false });
   consoleAddHint(root, "Applies to every event channel. Individual channels can also turn this on themselves.");
-
-  // § pinned people — opt-in with an explicit agreement (reserved-time leakage).
-  {
-    const key = "allowPinnedPeople";
-    const ss = serverSettings(conn);
-    const on = !!ss[key];
-    const tog = document.createElement("label");
-    tog.className = "server-settings-row side-toggle console-row";
-    tog.innerHTML = `<span>Allow pinned people channels</span><input type="checkbox" ${on ? "checked" : ""}>`;
-    const inp = tog.querySelector("input");
-    inp.onchange = async () => {
-      if (inp.checked) {
-        const ok = await ashConfirm(
-          "Pinned people channels let this server show a member’s visible calendar to others who can see that board. "
-          + "Where those others can’t open the home group, they still see a reserved time block (no title or details). "
-          + "Best for small trusted groups such as families. Turn this on?",
-          { ok: "Enable", cancel: "Cancel" },
-        );
-        if (!ok) {
-          inp.checked = false;
-          return;
-        }
-      }
-      send({ type: "updateServerSettings", [key]: !!inp.checked });
-      conn.serverSettings = { ...(conn.serverSettings || {}), [key]: !!inp.checked };
-      toast(inp.checked
-        ? "Pinned people channels enabled — use the sidebar to pin a member"
-        : "Pinned people channels disabled");
-      try { renderSidebar(); } catch {}
-    };
-    root.appendChild(tog);
-  }
-  consoleAddHint(root, "Creates read-only boards of one member’s visible plans. Viewers without access still see reserved times.");
 }
 
 /** Console → Access control. */

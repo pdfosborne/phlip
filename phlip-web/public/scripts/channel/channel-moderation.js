@@ -207,6 +207,59 @@ function openDeleteBoardsModal(conn = activeConn()) {
     close();
   });
 }
+
+/** Delete boards inside a settings pane. Confirmation is the typed DELETE field. */
+function mountDeleteBoardsPane(host, conn = activeConn()) {
+  if (!host) return;
+  if (!conn || !canManageServer(conn)) {
+    host.innerHTML = `<p class="empty-note">Only admins can delete boards.</p>`;
+    return;
+  }
+  const boards = (typeof boardsOf === "function" ? boardsOf(conn) : (conn.boards || [])).filter(b => {
+    if (!b || !b.id) return false;
+    if (b.sourceConnId && b.sourceBoardId) return false;
+    if (typeof PersonalSpace !== "undefined" && PersonalSpace.isRequiredBoard?.(b, conn)) return false;
+    return true;
+  }).slice().sort((a, b) =>
+    String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" })
+  );
+  host.innerHTML = `
+    <div class="server-menu-danger">
+      <p>Tick boards to remove. Events, chat, and tasks in those boards are wiped. This can’t be undone.</p>
+      ${boards.length ? `
+        <label class="check-row qm-select-all"><input type="checkbox" id="dc-select-all"> Select all (${boards.length})</label>
+        <div class="member-grid quick-manage-list" id="dc-list">
+          ${boards.map(b => `<label class="member-chip"><input type="checkbox" class="dc-ch-cb" value="${esc(b.id)}"> ${esc(b.name || "Board")}</label>`).join("")}
+        </div>
+        <label class="field" for="dc-confirm">Type DELETE to confirm
+          <input id="dc-confirm" maxlength="16" autocomplete="off" placeholder="DELETE">
+        </label>
+        <button type="button" class="danger" id="dc-delete">Delete selected</button>` : `
+        <p class="empty-note" style="margin:0">No boards on this server.</p>`}
+    </div>`;
+  const selectAll = host.querySelector("#dc-select-all");
+  if (selectAll) {
+    selectAll.onchange = () => host.querySelectorAll(".dc-ch-cb").forEach(el => { el.checked = selectAll.checked; });
+    host.querySelectorAll(".dc-ch-cb").forEach(el => {
+      el.onchange = () => {
+        const all = host.querySelectorAll(".dc-ch-cb");
+        selectAll.checked = all.length && [...all].every(x => x.checked);
+      };
+    });
+  }
+  host.querySelector("#dc-delete")?.addEventListener("click", () => {
+    const ids = [...host.querySelectorAll(".dc-ch-cb:checked")].map(el => el.value);
+    if (!ids.length) { toast("Select at least one board"); return; }
+    const typed = String(host.querySelector("#dc-confirm")?.value || "").trim().toUpperCase();
+    if (typed !== "DELETE") {
+      toast("Type DELETE to confirm");
+      return;
+    }
+    for (const boardId of ids) send({ type: "deleteBoard", boardId });
+    toast(ids.length === 1 ? "Deleting board…" : `Deleting ${ids.length} boards…`);
+    if (typeof showServerMenuPane === "function") showServerMenuPane("home");
+  });
+}
 /** Admin log — failsafe list of every event & message on this server with a
  *  per-row Delete, for when the normal event/chat UI won't load or doesn't
  *  expose a way to remove something. Host/admin only. */

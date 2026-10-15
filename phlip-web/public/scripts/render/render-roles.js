@@ -57,7 +57,9 @@ function mountRolesEditor(host, conn) {
   host.classList.add("roles-editor-panel");
   host.innerHTML = `<div class="roles-editor" data-roles-list></div>`;
 
-  const headActions = document.getElementById("side-overlay-actions");
+  const headActions = host.closest(".server-menu-overlay")
+    ? document.getElementById("server-menu-actions")
+    : document.getElementById("side-overlay-actions");
   if (headActions) {
     headActions.hidden = false;
     headActions.innerHTML = `

@@ -72,9 +72,9 @@ function openChannelPanelMode(mode = "info", channelId = null, opts = {}) {
   const wantTab = opts.tab || null;
   if (wantTab === "details" || wantTab === "settings" || wantTab === "activity") {
     tab = defaultChannelPanelTab(personal, panelCh);
-  } else if (wantTab === "people" || wantTab === "events" || wantTab === "calendar") {
+  } else if (wantTab === "calendar") {
     tab = wantTab;
-  } else if (wantTab === "notes" || wantTab === "description" || wantTab === "memories"
+  } else if (wantTab === "people" || wantTab === "events" || wantTab === "notes" || wantTab === "description" || wantTab === "memories"
       || wantTab === "notifications" || wantTab === "chat" || wantTab === "info") {
     tab = defaultChannelPanelTab(personal, panelCh);
   }
@@ -90,8 +90,8 @@ function openChannelPanelMode(mode = "info", channelId = null, opts = {}) {
   if (tab === "chat") {
     tab = defaultChannelPanelTab(personal, panelCh);
   }
-  // People only on shared servers.
-  if (tab === "people" && personal) tab = "calendar";
+  // The right panel is My calendar only.
+  if (tab === "people" || tab === "events") tab = "calendar";
   // Keep feed sub-state aligned with the panel tab.
   if (typeof normalizeEdcTab === "function" && normalizeEdcTab(tab)) {
     S._edcTab = normalizeEdcTab(tab);
@@ -497,7 +497,7 @@ function renderChannelPanel(force = false) {
     S._edcTab = normalizeEdcTab(channelPanelState.tab);
   }
 
-  if (channelPanelState.tab === "people" && personal) channelPanelState.tab = "calendar";
+  if (channelPanelState.tab === "people" || channelPanelState.tab === "events") channelPanelState.tab = "calendar";
   if (channelPanelState.tab === "info") channelPanelState.tab = "calendar";
   if (personal && (channelPanelState.tab === "chat" || channelPanelState.tab === "activity"
       || channelPanelState.tab === "events" || channelPanelState.tab === "settings"
@@ -530,11 +530,11 @@ function renderChannelPanel(force = false) {
   const chatTab = document.getElementById("channel-panel-tab-chat");
   if (chatTab) chatTab.hidden = true;
   const eventsTab = document.getElementById("channel-panel-tab-events");
-  if (eventsTab) eventsTab.hidden = personal || !chatKind;
+  if (eventsTab) eventsTab.hidden = true;
   const calendarTab = document.getElementById("channel-panel-tab-calendar");
   if (calendarTab) calendarTab.hidden = channelPanelState.tab === "calendar";
   const peopleTab = document.getElementById("channel-panel-tab-people");
-  if (peopleTab) peopleTab.hidden = personal;
+  if (peopleTab) peopleTab.hidden = true;
   const settingsTab = document.getElementById("channel-panel-tab-settings");
   if (settingsTab) settingsTab.hidden = true;
   const infoTab = document.getElementById("channel-panel-tab-info");

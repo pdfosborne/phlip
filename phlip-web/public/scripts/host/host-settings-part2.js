@@ -561,23 +561,6 @@ function fillHostedServerDataSettingsBody(body) {
     }
     main.appendChild(row);
   }
-  const danger = document.createElement("div");
-  danger.className = "host-server-danger";
-  danger.innerHTML = '<div class="channel-panel-section-label">Danger zone</div>';
-  const del = document.createElement("button");
-  del.type = "button";
-  del.className = "server-settings-row remove-server-link host-server-delete";
-  del.textContent = "Delete server";
-  del.onclick = async () => {
-    if (!(await ashConfirm(`Delete “${s.name}”? This cannot be undone.`, { danger: true }))) return;
-    const typed = prompt("Type DELETE to remove this server:");
-    if (String(typed || "").trim().toUpperCase() !== "DELETE") { toast("Cancelled"); return; }
-    hostCall("deleteHostedServer", s.id);
-    toast("Server deleted");
-    setTimeout(() => { readHostStatus(); closeSideOverlay(); }, 300);
-  };
-  danger.appendChild(del);
-  main.appendChild(danger);
   body.appendChild(main);
 }
 

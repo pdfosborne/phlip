@@ -1,4 +1,4 @@
-/* user-profile-overlay.js — Discord-style full-screen profile overlay from the account chip.
+/* user-profile-overlay.js — pull-up profile sheet from the account chip.
  * Globals out: openUserProfileOverlay, closeUserProfileOverlay, userProfileOverlayHandleBack
  * Load after: render-user-settings.js, render-cosmetics.js; before: channel-members.js
  */

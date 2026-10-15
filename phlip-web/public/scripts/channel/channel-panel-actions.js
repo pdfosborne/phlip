@@ -62,8 +62,8 @@ function ensureChannelPanelTaps() {
         if (next === "notes" || next === "description" || next === "memories" || next === "notifications" || next === "chat") {
           next = typeof defaultChannelPanelTab === "function" ? defaultChannelPanelTab(personal) : "calendar";
         }
-        if (!["people", "events", "calendar"].includes(next)) return;
-        if (next === "people" && personal) next = "calendar";
+        if (next === "people" || next === "events") next = "calendar";
+        if (next !== "calendar") return;
         if (personal && (next === "chat" || next === "events")) {
           next = "calendar";
         }

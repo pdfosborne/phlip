@@ -287,6 +287,14 @@ html.ime-open {
   --safe-bottom: 0px;
 }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* Icons have no width/height attributes. Without a base size, flex rows
+   stretch each SVG toward its 300px intrinsic width. */
+.ico,
+.ico-inline {
+  width: var(--icon-md, 16px);
+  height: var(--icon-md, 16px);
+  flex-shrink: 0;
+}
 input, textarea { font: inherit; color: var(--chalk); }
 :focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -55,7 +55,7 @@ data class AppState(
      */
     var saltBlindKey: String = "",
     var hostName: String = "Phlip host",
-    // 1–2 characters shown on the rail / nav button; empty → clients use initials.
+    // Up to 4 characters shown on the rail / nav button; empty → clients use initials.
     var iconText: String = "",
     // Event categories offered by this server (see Category above).
     var categories: MutableList<Category> = defaultCategories(),

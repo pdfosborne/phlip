@@ -953,12 +953,25 @@ async function runFactoryReset() {
 function openServerIconModal() {
   const conn = activeConn();
   if (!canManageServer(conn)) return;
-  const current = normalizeIconText(conn.iconText) || connIconText(conn);
   const opened = AshModal.open({
     className: "modal-backdrop",
     html: `
     <div class="modal-card">
       <h4>Server icon</h4>
+      <div id="icon-mount"></div>
+    </div>`,
+    singleton: false,
+  });
+  if (!opened) return;
+  const { overlay, close } = opened;
+  mountServerIconControls(overlay.querySelector("#icon-mount"), conn, { close });
+}
+
+/** Letters, emoji, or a photo for the server mark. `close` is used by the modal. */
+function mountServerIconControls(host, conn, { close } = {}) {
+  if (!host || !conn || !canManageServer(conn)) return;
+  const current = normalizeIconText(conn.iconText) || connIconText(conn);
+  host.innerHTML = `
       <p class="empty-note" style="margin:0 0 12px">Letters/emoji or a photo — shown in the server list and the top bar.</p>
       <form id="icon-form">
         <div class="field icon-edit-row">
@@ -967,7 +980,7 @@ function openServerIconModal() {
             : `<span class="rail-label">${esc(current)}</span>`}</div>
           <div class="field" style="flex:1;margin:0">
             <label for="icon-text">Icon text</label>
-            <input id="icon-text" maxlength="8" value="${esc(normalizeIconText(conn.iconText))}" placeholder="${esc(serverIconShorthand(conn.name || conn.hostName || "?"))}" autocomplete="off">
+            <input id="icon-text" maxlength="4" value="${esc(normalizeIconText(conn.iconText))}" placeholder="${esc(serverIconShorthand(conn.name || conn.hostName || "?"))}" autocomplete="off">
           </div>
         </div>
         <div class="actions">
@@ -975,18 +988,13 @@ function openServerIconModal() {
           <button type="button" class="cancel" id="icon-adjust" ${conn.serverPic ? "" : "hidden"}>Adjust</button>
           <button type="button" class="cancel" id="icon-reset">Use initials</button>
           <div>
-            <button type="button" class="cancel" id="icon-cancel">Cancel</button>
+            ${close ? `<button type="button" class="cancel" id="icon-cancel">Cancel</button>` : ""}
             <button type="submit" class="save">Save</button>
           </div>
         </div>
-      </form>
-    </div>`,
-    singleton: false,
-  });
-  if (!opened) return;
-  const { overlay, close } = opened;
-  const input = overlay.querySelector("#icon-text");
-  const preview = overlay.querySelector("#icon-preview");
+      </form>`;
+  const input = host.querySelector("#icon-text");
+  const preview = host.querySelector("#icon-preview");
   const paint = () => {
     if (conn.serverPic) {
       preview.innerHTML = `<img class="rail-pic" src="${esc(conn.serverPic)}" alt="">`;
@@ -996,20 +1004,20 @@ function openServerIconModal() {
     preview.innerHTML = `<span class="rail-label">${esc(t)}</span>`;
   };
   input.addEventListener("input", paint);
-  overlay.querySelector("#icon-cancel").onclick = close;
-  overlay.querySelector("#icon-photo").onclick = async () => {
+  host.querySelector("#icon-cancel")?.addEventListener("click", () => { if (close) close(); });
+  host.querySelector("#icon-photo").onclick = async () => {
     try {
       const data = await pickAndCropProfileImage(SERVER_PIC_MAX_BYTES, SERVER_PIC_OUT_PX);
       if (!data) return;
       conn.serverPic = data;
       send({ type: "setServerPic", data });
       persistServerIcon(conn);
-      overlay.querySelector("#icon-adjust").hidden = false;
+      host.querySelector("#icon-adjust").hidden = false;
       paint(); renderRail(); renderSidebar();
       toast("Server photo updated");
     } catch (err) { toast(err.message || "Upload failed"); }
   };
-  overlay.querySelector("#icon-adjust").onclick = async () => {
+  host.querySelector("#icon-adjust").onclick = async () => {
     if (!conn.serverPic) return;
     try {
       const data = await openPhotoCropModal({
@@ -1025,25 +1033,33 @@ function openServerIconModal() {
       toast("Server photo updated");
     } catch (err) { toast(err.message || "Couldn’t crop photo"); }
   };
-  overlay.querySelector("#icon-reset").onclick = () => {
+  host.querySelector("#icon-reset").onclick = () => {
     conn.iconText = "";
     conn.serverPic = "";
     send({ type: "setServerIcon", iconText: "" });
     send({ type: "setServerPic", data: "" });
     persistServerIcon(conn);
     renderRail(); renderSidebar();
-    close();
+    if (close) close();
+    else {
+      input.value = "";
+      paint();
+      toast("Using initials");
+    }
   };
-  overlay.querySelector("#icon-form").onsubmit = (e) => {
+  host.querySelector("#icon-form").onsubmit = (e) => {
     e.preventDefault();
     const textVal = normalizeIconText(input.value);
     conn.iconText = textVal;
     send({ type: "setServerIcon", iconText: textVal });
     persistServerIcon(conn);
     renderRail(); renderSidebar();
-    close();
+    if (close) close();
+    else toast("Server icon updated");
   };
-  input.focus();
-  input.select();
+  if (close) {
+    input.focus();
+    input.select();
+  }
 }
 
