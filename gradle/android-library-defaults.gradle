@@ -1,0 +1,18 @@
+/**
+ * Shared Android library defaults for :core, :server, and :tunnel.
+ *
+ * Intentionally narrow: compileSdk / minSdk / Java 8 only.
+ * Keep KMP/iOS, Kotlin jvmTarget, NDK, and test options in each module.
+ */
+android {
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 26
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}

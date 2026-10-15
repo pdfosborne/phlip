@@ -1,0 +1,4 @@
+d0b5b420761594526673a7e4ea3faa04db1a2faec49e68506b9ca9b88712db8b  libcloudflared.so
+# Built from cloudflared 2026.7.2 with -ldflags="-s -w -R=0x4000" -trimpath (CGO_ENABLED=0)
+# -R=0x4000 ? ELF LOAD Align 16 KB (Android 15+ / Pixel page-size requirement)
+# https://github.com/cloudflare/cloudflared/releases/tag/2026.7.2

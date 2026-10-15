@@ -1,0 +1,202 @@
+﻿/* =============================================================================
+   Phlip component stylesheet: Form fields and join flow
+   Cascade order is managed by ../style.css -- do not import this file directly.
+   ============================================================================= */
+/* -------------------------------- form fields ----------------------------- */
+
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 6px;
+}
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field textarea {
+  width: 100%;
+  background: var(--bottle);
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.field input.code { font-family: var(--mono); letter-spacing: 0.35em; text-transform: uppercase; }
+.field select {
+  width: 100%;
+  background: var(--bottle);
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.join-code-sections {
+  display: grid;
+  gap: 12px;
+  font-family: var(--mono);
+}
+.join-code-remote {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  gap: 6px;
+}
+.join-code-sections input {
+  width: 100%;
+  background: var(--bottle);
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  min-width: 0;
+}
+.join-code-sections #j-invite {
+  text-align: center;
+  text-transform: uppercase;
+}
+.join-code-sections #j-host {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+.join-field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sage);
+  font-family: var(--sans, inherit);
+  letter-spacing: 0.02em;
+}
+.join-code-hint { font-size: 12px; color: var(--sage); margin-top: 6px; line-height: 1.35; }
+.join-code-hint strong { color: var(--marigold-dim); font-family: var(--mono); }
+.join-modal-lead {
+  margin: -8px 0 14px;
+}
+.join-accept {
+  margin: 0 0 16px;
+  padding: 12px 12px 10px;
+  background: var(--bottle, rgba(0,0,0,0.04));
+  border-radius: 10px;
+}
+.join-accept-title {
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: 8px;
+  color: var(--chalk);
+}
+.join-accept-list {
+  margin: 0 0 12px;
+  padding-left: 1.15em;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted, var(--sage));
+}
+.join-accept-list li { margin-bottom: 6px; }
+.join-accept-list li:last-child { margin-bottom: 0; }
+.join-accept-check {
+  margin-top: 4px !important;
+  align-items: flex-start !important;
+}
+.join-agree-server {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+}
+.join-agree-face {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bottle-2, rgba(0,0,0,0.06));
+  border: 1px solid var(--moss, rgba(0,0,0,0.08));
+}
+.join-agree-pic {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.join-agree-glyph {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--chalk);
+}
+.join-agree-name {
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--chalk);
+}
+.join-agree-age {
+  font-size: 13px;
+  color: var(--muted, var(--sage));
+  margin-top: 2px;
+}
+@media (max-width: 390px) {
+  .join-code-sections input {
+    padding: 11px 10px;
+    font-size: 14px;
+  }
+  .join-code-sections #j-host { font-size: 13px; }
+}
+.join-error { color: var(--ember); font-size: 13px; margin-top: 12px; min-height: 18px; }
+.join-wait { color: var(--sage); font-size: 13px; margin-top: 12px; }
+.join-wait-panel {
+  margin: 8px 0 4px;
+  padding: 16px 14px;
+  text-align: center;
+  background: color-mix(in srgb, var(--bottle) 88%, var(--marigold) 12%);
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+}
+.join-wait-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--chalk);
+  line-height: 1.35;
+}
+.join-wait-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.join-alt-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.join-alt-links .linkish {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--muted, #888);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+/* "Join a server" — nearby servers found via local-network discovery */
+.discover-section { margin-bottom: 14px; }
+.discover-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.discover-item {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bottle);
+  border: 1px solid var(--moss);
+  border-radius: 10px;
+  text-align: left;
+}
+@media (hover: hover) and (pointer: fine) {
+  .discover-item:hover { border-color: var(--marigold); }
+}
+
+.discover-name { font-size: 14.5px; font-weight: 700; color: var(--chalk); }
+.discover-sub { font-size: 12px; color: var(--marigold-dim); font-weight: 700; }

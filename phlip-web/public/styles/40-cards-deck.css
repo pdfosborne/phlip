@@ -1,0 +1,1446 @@
+﻿/* Event cards and tickets used by chat, timeline, and create. */
+
+/* Draw stack under the current card */
+/* Discard pile — mostly off-screen left, face-down; top card is grabbable */
+
+/* Two-sided flip: discard pile shows the back; stack shows the face */
+
+/* Trading-card face — slim accent frame + title / art / subtitle / foot */
+
+/* the signature: trading-card stub event rows (024 / 028) */
+.ticket {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--ticket-field);
+  border: 0;
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 8px;
+  min-height: 88px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  /* Reserve the focus ring so swapping focus only recolors — no silhouette grow. */
+  box-shadow:
+    0 0 0 1.5px transparent,
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: box-shadow .12s ease;
+}
+.ticket:not(.focused) > .ticket-body {
+  background: transparent;
+}
+.ticket.focused {
+  outline: none;
+  z-index: 2;
+  background: var(--ticket-field-raised, var(--card-bg));
+  box-shadow:
+    0 0 0 1.5px var(--highlight, var(--marigold)),
+    0 2px 6px color-mix(in srgb, var(--highlight, var(--marigold)) 12%, transparent);
+  filter: none;
+}
+.ticket.focused > .ticket-body {
+  background: var(--ticket-field-raised, var(--card-bg));
+}
+.ticket.focused .ticket-stub,
+.ticket.focused.ticket-block.ticket-stub {
+  background: var(--ticket-field-raised, var(--card-bg));
+}
+
+/* 017 — sender sleeves (Style card-back ids) */
+
+/* § approvals — pending-approval cards: faded + dashed outline, distinct
+   from the sealed-sender treatment above (that's about *who can see it*,
+   this is about *is it real yet*). */
+.ticket-card.ticket-pending {
+  opacity: 0.62;
+  outline: 1.5px dashed color-mix(in srgb, var(--accent, #7e8da6) 70%, transparent);
+  outline-offset: -1.5px;
+}
+
+.ticket-stub-live {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: 4;
+  line-height: 0;
+  pointer-events: none;
+}
+.ticket-stub-live .live-dot {
+  margin-right: 0;
+  vertical-align: 0;
+}
+.ticket-pending-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--marigold, #d9a441);
+  background: color-mix(in srgb, var(--marigold, #d9a441) 14%, transparent);
+  border-radius: 6px;
+  padding: 2px 6px;
+  align-self: flex-start;
+}
+.ticket-pending-badge .ico { width: 12px; height: 12px; }
+
+/* § pinned location channels / clones — redacted "reserved" stub for events
+   whose home channel the viewer can't see. Unlike the sealed sleeve (017)
+   there's no reveal: the server never sent title/where/details at all. */
+.ticket-limited-stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: color-mix(in srgb, var(--ink, #1a1d24) 6%, transparent);
+  border: 1.5px dashed color-mix(in srgb, var(--ink, #1a1d24) 22%, transparent);
+  box-sizing: border-box;
+  opacity: 0.7;
+  color: var(--muted, #6e7688);
+}
+.ticket-limited-stub .ticket-stub-time,
+.ticket-limited-stub .ticket-build-place {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.ticket-limited-stub .ticket-build-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+/* 017 — flip + glyph resolve */
+@keyframes sealed-deny-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+/* 024 — miniature trading card: fixed 52×72, never stretches with the row. */
+.ticket-stub,
+.ticket-block.ticket-stub {
+  width: 52px;
+  height: 72px;
+  flex: 0 0 52px;
+  align-self: flex-start;
+  box-sizing: border-box;
+  background: var(--ticket-field-raised);
+  color: var(--sage);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 4px;
+  gap: 2px;
+  border-radius: 7px;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transform-origin: 50% 60%;
+  transition:
+    transform .34s cubic-bezier(.22, 1.15, .36, 1),
+    box-shadow .34s ease,
+    filter .34s ease,
+    opacity .34s ease;
+}
+.ticket-stub-art {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tint, var(--bottle-2));
+  color: var(--accent, var(--sage));
+  line-height: 0;
+  position: relative;
+  overflow: visible;
+}
+.ticket-stub-art > .ico {
+  width: 20px;
+  height: 20px;
+}
+/* 025 — element gem: category sigil, top-right of art. */
+.ticket-stub-gem {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gem, var(--accent, var(--sage)));
+  color: #fff;
+  border: 2px solid color-mix(in srgb, var(--chalk) 4%, var(--card-bg));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--chalk) 8%, transparent);
+  z-index: 2;
+  line-height: 0;
+  pointer-events: none;
+}
+.ticket-stub-gem .ico {
+  width: 9px;
+  height: 9px;
+}
+/* 007 — borrowed-deck badge: squared tile, bottom-left of art (gem stays top-right). */
+.ticket-borrow-badge {
+  position: absolute;
+  bottom: -3px;
+  left: -3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--chalk) 8%, var(--card-bg));
+  color: var(--sage);
+  border: 1.5px solid color-mix(in srgb, var(--chalk) 18%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--chalk) 6%, transparent);
+  z-index: 2;
+  line-height: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Shared-note / description mark — icon center on the card's bottom-left corner.
+   Half-size left/bottom (not translate%) so Android WebView keeps the offset. */
+.ticket-stub-note {
+  position: absolute;
+  left: -7px;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--ui-accent, #4e9be0);
+  box-shadow: none;
+  z-index: 5;
+  line-height: 0;
+  padding: 0;
+  cursor: inherit;
+  pointer-events: none;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  transform: none;
+}
+button.ticket-stub-note {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.ticket-stub-note .ico {
+  width: 11px;
+  height: 11px;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 0 1.5px var(--card-bg, #fff))
+          drop-shadow(0 0 1.5px var(--card-bg, #fff));
+}
+.ticket-borrow-badge .ticket-server-ico,
+.ticket-borrow-badge .ico-inline {
+  width: 11px;
+  height: 11px;
+}
+/* § event cloning — same corner/shape as the borrow badge, distinct tint. */
+.ticket-borrow-badge .rail-pic {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+.ticket-building > .ticket-borrow-badge,
+.ticket-full > .ticket-borrow-badge {
+  bottom: 2px;
+  left: 2px;
+}
+.ticket-building > .ticket-stub-live,
+.ticket-full > .ticket-stub-live {
+  top: 4px;
+  left: 4px;
+}
+
+/* Knowing exception: gem greys on declined so it doesn’t outshine the dim card. */
+.ticket.declined .ticket-stub-gem {
+  filter: grayscale(1);
+  opacity: 0.55;
+  background: color-mix(in srgb, var(--gem, var(--sage)) 35%, #8a8f98);
+}
+.ticket-stub-time {
+  flex: 0 0 auto;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--sage);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Keep day-cluster tickets visible when chains overflow. */
+.ticket.in-day-cluster {
+  overflow: visible;
+}
+.ticket.in-day-cluster.has-chain-strip {
+  overflow: visible;
+}
+/* 015 — building size (~92×128): hero → title → time → place (Figma detail layout). */
+.ticket-building,
+.ticket-card[data-size="building"],
+.ticket-full,
+.ticket-card[data-size="full"] {
+  --ec-bg: color-mix(in srgb, var(--chalk) 3%, var(--card-bg));
+  --ec-fg: var(--sage);
+  --ec-radius: 11px;
+  --ec-shadow: 0 2px 6px rgba(0, 0, 0, 0.10);
+  --ec-border: transparent;
+  --ec-border-w: 0px;
+  --ec-hero-bg: var(--tint, var(--bottle-2));
+  --ec-hero-fg: var(--accent, var(--sage));
+  --ec-hero-radius: 7px;
+  --ec-title: var(--chalk);
+  --ec-cat: var(--accent, var(--sage));
+  --ec-date-bg: var(--card-bg);
+  --ec-date-fg: var(--chalk);
+  --ec-date-border: color-mix(in srgb, var(--chalk) 28%, transparent);
+  --ec-date-radius: 6px;
+  --ec-chip-bg: color-mix(in srgb, var(--accent, var(--marigold)) 14%, var(--card-bg));
+  --ec-chip-fg: var(--accent, var(--marigold-dim));
+  --ec-chip-border: transparent;
+  --ec-chip-border-w: 0px;
+  --ec-chip-radius: 4px;
+  --ec-sep: var(--sage);
+}
+.ticket-building,
+.ticket-card[data-size="building"] {
+  width: 92px;
+  height: 128px;
+  box-sizing: border-box;
+  background: var(--ec-bg);
+  color: var(--ec-fg);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 6px;
+  gap: 4px;
+  border: var(--ec-border-w) solid var(--ec-border);
+  border-radius: var(--ec-radius);
+  overflow: visible;
+  position: relative;
+  box-shadow: var(--ec-shadow);
+}
+
+.ticket-build-title {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 650;
+  text-align: center;
+  line-height: 1.2;
+  min-height: 13px;
+  color: var(--ec-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticket-build-title.off {
+  color: color-mix(in srgb, var(--chalk) 28%, transparent);
+  font-weight: 500;
+}
+/* Empty subtitle is a swipe-create skip — assemble keeps it as a tap target. */
+.ticket-build-line {
+  flex: 0 0 auto;
+  font-size: 10px;
+  text-align: center;
+  border-radius: var(--ec-chip-radius);
+  padding: 2px 0;
+  min-height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticket-build-place {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.25;
+  min-height: calc(1.25em * 2 + 4px);
+  max-height: calc(1.25em * 2 + 4px);
+  padding: 2px 4px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-overflow: ellipsis;
+  align-content: center;
+}
+.ticket-build-place.off {
+  display: flex;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
+.ticket-build-line.off {
+  border: 1.5px dashed color-mix(in srgb, var(--chalk) 20%, transparent);
+  color: color-mix(in srgb, var(--chalk) 28%, transparent);
+}
+.ticket-build-date {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.15;
+  min-height: 16px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--marigold-dim);
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticket-build-date.off {
+  border: 1.5px dashed color-mix(in srgb, var(--marigold) 40%, transparent);
+  color: color-mix(in srgb, var(--marigold-dim) 65%, var(--sage));
+  background: color-mix(in srgb, var(--marigold) 8%, var(--card-bg));
+  font-weight: 650;
+}
+/* Empty place must read as missing, not as a quiet absent line. */
+.ticket-build-place.off {
+  border: 2px dashed color-mix(in srgb, var(--marigold) 45%, transparent);
+  color: color-mix(in srgb, var(--marigold-dim) 70%, var(--sage));
+  background: color-mix(in srgb, var(--marigold) 8%, var(--card-bg));
+  font-weight: 650;
+}
+.ticket-build-line.part {
+  background: color-mix(in srgb, var(--chalk) 6%, var(--card-bg));
+  color: var(--sage);
+}
+/* 008 — learned default, not yet confirmed by a touch. */
+.ticket-build-line.suggest {
+  background: color-mix(in srgb, var(--chalk) 4%, var(--card-bg));
+  color: color-mix(in srgb, var(--sage) 75%, transparent);
+  font-weight: 500;
+  border-style: dashed;
+  opacity: 0.85;
+}
+.ticket-build-line.on {
+  background: var(--ec-chip-bg);
+  color: var(--ec-chip-fg);
+  font-weight: 600;
+  border: var(--ec-chip-border-w) solid var(--ec-chip-border);
+}
+/* Detail face: start / end clocks as separate tappable chips. */
+.ticket-build-time-row {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+.ticket-build-time-row .ticket-build-time {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ticket-build-time-sep {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ec-sep);
+  opacity: 0.55;
+  line-height: 1;
+  user-select: none;
+}
+.ticket-full .ticket-build-time-sep {
+  font-size: 13px;
+}
+/* 015 — full size (~220×306): detail popup hero (same layout as building). */
+.ticket-full,
+.ticket-card[data-size="full"] {
+  --ec-radius: 18px;
+  --ec-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  --ec-hero-radius: 12px;
+  --ec-date-radius: 8px;
+  --ec-chip-radius: 8px;
+  width: 220px;
+  height: 306px;
+  box-sizing: border-box;
+  background: var(--ec-bg);
+  color: var(--ec-fg);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 12px;
+  gap: 7px;
+  border: var(--ec-border-w) solid var(--ec-border);
+  border-radius: var(--ec-radius);
+  overflow: visible;
+  position: relative;
+  box-shadow: var(--ec-shadow);
+}
+
+.ticket-full .ticket-build-title {
+  font-size: 17px;
+  font-weight: 750;
+  min-height: 20px;
+  letter-spacing: -0.01em;
+}
+
+.ticket-full .ticket-build-place {
+  min-height: calc(1.25em * 2 + 10px);
+  max-height: calc(1.25em * 2 + 10px);
+  padding: 5px 6px;
+}
+.ticket-full .ticket-build-date {
+  font-size: 13px;
+  font-weight: 750;
+  min-height: 17px;
+}
+.ticket-full .ticket-build-line {
+  font-size: 13px;
+  padding: 5px 6px;
+  min-height: 26px;
+  border-radius: var(--ec-chip-radius);
+}
+
+/* —— Event card face cosmetics (Card cosmetics → Events) —— */
+html[data-event-card="date"] .ticket-building,
+html[data-event-card="date"] .ticket-full,
+html[data-event-card="date"] .ticket-card[data-size="building"],
+html[data-event-card="date"] .ticket-card[data-size="full"] {
+  --ec-bg: #ffffff;
+  --ec-fg: #6b7280;
+  --ec-shadow: 0 2px 3px rgba(0, 0, 0, 0.10);
+  --ec-border: transparent;
+  --ec-border-w: 0px;
+  --ec-hero-bg: #f3f4f6;
+  --ec-hero-fg: #5aa9e6;
+  --ec-title: #111827;
+  --ec-cat: rgba(17, 24, 39, 0.7);
+  --ec-date-bg: #5aa9e6;
+  --ec-date-fg: #ffffff;
+  --ec-date-border: transparent;
+  --ec-chip-bg: #eaf4fc;
+  --ec-chip-fg: #3e7cb1;
+  --ec-chip-border: transparent;
+  --ec-chip-border-w: 0px;
+  --ec-chip-radius: 8px;
+  --ec-sep: #6b7280;
+}
+
+html[data-event-card="night"] .ticket-building,
+html[data-event-card="night"] .ticket-full,
+html[data-event-card="night"] .ticket-card[data-size="building"],
+html[data-event-card="night"] .ticket-card[data-size="full"] {
+  --ec-bg: #14172a;
+  --ec-fg: #9ca3c0;
+  --ec-shadow: 0 10px 11px rgba(0, 0, 0, 0.22);
+  --ec-border: #c8a15a;
+  --ec-border-w: 1px;
+  --ec-hero-bg: radial-gradient(ellipse at 50% 45%, #4a5490 0%, #342c64 50%, #1e2338 100%);
+  --ec-hero-fg: #c8a15a;
+  --ec-title: #f6f1e4;
+  --ec-cat: rgba(246, 241, 228, 0.7);
+  --ec-date-bg: linear-gradient(161deg, #e9d39c 4%, #c8a15a 68%);
+  --ec-date-fg: #14172a;
+  --ec-date-border: transparent;
+  --ec-chip-bg: rgba(200, 161, 90, 0.14);
+  --ec-chip-fg: #e9d39c;
+  --ec-chip-border: rgba(200, 161, 90, 0.28);
+  --ec-chip-border-w: 1px;
+  --ec-chip-radius: 8px;
+  --ec-sep: #9ca3c0;
+}
+
+/* Scrim only — do not force position:relative on children (breaks absolute date pill). */
+
+html[data-event-card="ink"] .ticket-building,
+html[data-event-card="ink"] .ticket-full,
+html[data-event-card="ink"] .ticket-card[data-size="building"],
+html[data-event-card="ink"] .ticket-card[data-size="full"] {
+  --ec-bg: #1a1c16;
+  --ec-fg: #c4bba8;
+  --ec-shadow: 0 8px 9px rgba(0, 0, 0, 0.35);
+  --ec-border: rgba(246, 241, 228, 0.22);
+  --ec-border-w: 1px;
+  --ec-hero-bg: #24261f;
+  --ec-hero-fg: #f6f1e4;
+  --ec-title: #f6f1e4;
+  --ec-cat: rgba(246, 241, 228, 0.7);
+  --ec-date-bg: #f6f1e4;
+  --ec-date-fg: #1a1c16;
+  --ec-date-border: transparent;
+  --ec-chip-bg: rgba(246, 241, 228, 0.08);
+  --ec-chip-fg: #f6f1e4;
+  --ec-chip-border: rgba(246, 241, 228, 0.45);
+  --ec-chip-border-w: 1px;
+  --ec-chip-radius: 6px;
+  --ec-sep: #c4bba8;
+}
+
+html[data-event-card="contrast"] .ticket-building,
+html[data-event-card="contrast"] .ticket-full,
+html[data-event-card="contrast"] .ticket-card[data-size="building"],
+html[data-event-card="contrast"] .ticket-card[data-size="full"] {
+  --ec-bg: #ffffff;
+  --ec-fg: #111111;
+  --ec-radius: 4px;
+  --ec-shadow: none;
+  --ec-border: #111111;
+  --ec-border-w: 2px;
+  --ec-hero-bg: #f3f4f6;
+  --ec-hero-fg: #111111;
+  --ec-hero-radius: 2px;
+  --ec-title: #111111;
+  --ec-cat: rgba(17, 17, 17, 0.7);
+  --ec-date-bg: #111111;
+  --ec-date-fg: #ffffff;
+  --ec-date-border: transparent;
+  --ec-date-radius: 12px;
+  --ec-chip-bg: transparent;
+  --ec-chip-fg: #111111;
+  --ec-chip-border: #111111;
+  --ec-chip-border-w: 1.5px;
+  --ec-chip-radius: 2px;
+  --ec-sep: #111111;
+}
+html[data-event-card="contrast"] .ticket-full,
+html[data-event-card="contrast"] .ticket-card[data-size="full"] {
+  --ec-radius: 4px;
+  --ec-hero-radius: 2px;
+  --ec-chip-radius: 2px;
+}
+
+html[data-event-card="sage"] .ticket-building,
+html[data-event-card="sage"] .ticket-full,
+html[data-event-card="sage"] .ticket-card[data-size="building"],
+html[data-event-card="sage"] .ticket-card[data-size="full"] {
+  --ec-bg: #f4f6f3;
+  --ec-fg: #4a5c4e;
+  --ec-radius: 18px;
+  --ec-shadow: 0 6px 8px rgba(51, 64, 51, 0.08);
+  --ec-border: #c5d0c4;
+  --ec-border-w: 1px;
+  --ec-hero-bg: #e4ebe3;
+  --ec-hero-fg: #6b7f6e;
+  --ec-title: #2f3b32;
+  --ec-cat: rgba(47, 59, 50, 0.7);
+  --ec-date-bg: #6b7f6e;
+  --ec-date-fg: #ffffff;
+  --ec-date-border: transparent;
+  --ec-chip-bg: #e8eee8;
+  --ec-chip-fg: #4a5c4e;
+  --ec-chip-border: rgba(154, 168, 154, 0.55);
+  --ec-chip-border-w: 1px;
+  --ec-chip-radius: 10px;
+  --ec-sep: #4a5c4e;
+}
+html[data-event-card="sage"] .ticket-building,
+html[data-event-card="sage"] .ticket-card[data-size="building"] {
+  --ec-radius: 15px;
+}
+html[data-event-card="sage"] .ticket-full,
+html[data-event-card="sage"] .ticket-card[data-size="full"] {
+  --ec-radius: 18px;
+}
+
+/* Create mid-flow host — centre above the hand (pileAnchor). */
+/* 008 swipe-create: card is the flick / slot-tap target. */
+/* Routine carousel (022) — the main preview card doubles as a swipeable
+ * carousel of blank + available routines while creating fresh. Slides are
+ * dragged by hand-create-gestures.js's own pointer state machine (axis "h"),
+ * not native scrolling — touch-action: none above already blocks native pan,
+ * so this is purely a transform track.
+ * Scoped under #building-card-host — the bare .cs-carousel-track class name
+ * collides with the unrelated Type/Location field-tab carousel below
+ * (:2689), which otherwise wins on gap/padding at equal specificity and
+ * throws the JS's assumed slide pitch off, pushing slides out of the
+ * overflow:hidden viewport. */
+/* Flick-up shooting-star arrows — sides + top of the assembling card. */
+@keyframes create-flick-shoot {
+  0% {
+    transform: translateX(-50%) translateY(12px) scale(0.72);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.95;
+  }
+  55% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-108px) scale(1);
+    opacity: 0;
+  }
+}
+/* Text sits first — tight above the card. */
+@keyframes create-flick-nudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes create-post-pulse-dot {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, #f7f4ec 36%, transparent);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px color-mix(in srgb, #f7f4ec 0%, transparent);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, #f7f4ec 0%, transparent);
+  }
+}
+@keyframes create-ready-card-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--chalk) 18%, transparent),
+      0 12px 28px rgba(17, 24, 39, 0.14);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow:
+      0 0 0 7px color-mix(in srgb, var(--chalk) 10%, transparent),
+      0 16px 32px rgba(17, 24, 39, 0.18);
+  }
+}
+/* Always-on cancel cue — just under the assembling card (over dark scrim). */
+
+/* Suggest-alt: instruction under the card (replaces “Flick up to post” above). */
+/* Push cancel cue below the suggest hint (taller when two-line ready copy). */
+
+/* Top-right discard during swipe-create (replaces hand ✕). */
+/* Prompt tray fully on-screen (default hand hangs below the fold). */
+
+/* Bottom-docked create panel — chips when ≤5, scroll strip when >5. */
+/* Soft panel chips — idle gray, selected tint + dark ink (create / time / place). */
+/* Focus the slot being edited on the assembling card. */
+
+/* Category / type as mini deck cards — gem + tint so flight into the building card reads. */
+/* Escapes column: New matches deck cards; one-off sits in the filter band above. */
+/* In-flight clone — body-level, so face styles must not depend on #create-swipe-hint. */
+
+/* ————————————————————————————————————————————————————————————————
+ * Field-tabs sheet — Quick Select + pull-up Edit details.
+ * ———————————————————————————————————————————————————————————————— */
+/* Fixed size always — never stretches/shrinks with how many tabs are shown
+ * or whether anything else in the row appears, so tabs never visibly resize. */
+/* Fixed body height so tab switches don't resize the sheet. Sized so the
+ * Time tab fits Night hours (12am–5am row) plus the suggestion chips
+ * without scrolling; every tab uses this same height. */
+
+/* Type / Location carousel */
+/* Enlarged option cards inside the field-tabs sheet only (legacy chip
+ * panels keep the 56×66 .csh-card size). */
+/* Deck-management pills (New card / New place / Import) — fixed trailing
+ * slots in the carousel row, never a conditional overflow button. */
+/* One-off inline text entry */
+
+/* Time tab — summary chips, 6-col hour grid, minutes + Night. Day grid
+ * is 6am–11pm (3 even rows). Night adds one 12am–5am row. Field body
+ * height is sized so Night + suggestions fit without scrolling. */
+
+/* Icon tab — common/catalog grid above suggestions + filter (just above Create). */
+
+/* Type sheet (card-tap, not a tab button) — chips + text + Edit icon. */
+
+/* Time tab — Start/End toggle + Hour/Minute stacked vertically (each dial
+ * still scrolls horizontally). Compact so both fit the fixed 120px body. */
+/* Inline time dial — horizontal scroll-snap strips (Hour, Minute), same
+ * proven mechanism as the Type/Location carousel. */
+/* Style tab — thumbs sized to the fixed 120px body (thumb + label).
+ * Full card is 210×309; scale matches thumb box exactly. Selection ring
+ * overlays the thumb (inset) so it isn't clipped by overflow. */
+/* Selection ring sits on top of the preview image (not around the label). */
+/* Clearer "currently selected" highlight than a flat grey box — an
+ * accent-tinted fill with a solid accent border, centered on the strip. */
+
+/* Info tab — subtitle + description */
+/* Save button beside/under a text field — commits and blurs, so the
+ * keyboard can be dismissed without hunting for empty space to tap. */
+
+/* Subtitle tab — quick-select suggestions + input (just above Create). Routine
+ * selection lives on the main preview card carousel now (022), not this tab. */
+
+/* Small anchored popup for a suggestion rail's long-press sub-options
+ * (routine card Edit/Delete, chip Edit/Delete/Save as routine) — replaces
+ * the old "reveal a panel behind the card" pattern. Mirrors the timeline's
+ * tl-quick-menu treatment (35-timeline-view.css) with the sheet's own tokens. */
+
+/* Action row — Cancel / Delete (edit) / Create|Save changes */
+/* Create — muted until type + time are set. */
+
+/* Art / gem fills — dashed form becomes a tinted object. */
+@keyframes building-art-arrive {
+  0% {
+    transform: scale(0.82);
+    filter: saturate(0.45);
+    opacity: 0.55;
+  }
+  55% {
+    transform: scale(1.04);
+    filter: saturate(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+    opacity: 1;
+  }
+}
+
+/* Full-screen dark backdrop behind the muted draft card (create fieldTabs).
+ * Shown/hidden by ensureStagingScrim()/clearStagingScrim()
+ * (hand-create-building.js). */
+
+/* Muted grey draft card while picking fields — !important beats inline
+ * --accent/--tint/--event-card-* from eventCardHTML / presets. Colour
+ * blooms in at Send (playCreateSendTransition). */
+/* Completed draft fields — solid black so filled slots read as done
+ * (empty / placeholder slots stay muted grey above). */
+
+/* Sheet exit (playCreateSendTransition, step 1) — slides fully off-screen. */
+
+/* Colour bloom overlay — coloured face clipped to a circle expanding from
+ * the main icon (clip-path set in JS). */
+
+/* Mid-flow create card — large enough for subtitle + start/end + place.
+   z-index above the flick-up trail so arrows read as behind the card. */
+/* Unedited TIME slot — no dashed box; plain muted label only. */
+
+/* Empty identity slots: dashed only while empty. Active field uses slot-focus. */
+/* Create-card edit hints: the whole visible field is the tap target. */
+/* Hide spent create picks while the building card carries mid-flow state. */
+/* Creation finish — flyer clones the building card along the flick arc. */
+/* Mid-flight / post-morph: flyer becomes a true stub face (see .cs-flyer-as-stub).
+ * Legacy hide rules kept for any path that still collapses a building face. */
+/* Full-size stub preview: same proportions as the 52×72 timeline stub, but
+ * laid out at real large pixels (--cs-stub-scale) so SVG icons / type stay sharp.
+ * Avoid transform:scale() on a tiny stub — that looked soft/low-res. */
+/* Brief hide while swapping building → stub at edge-on mid-spin. */
+/* Full-art flip: 3D rotateY of the scaled stub face at full size.
+ * Scale-down to the timeline stub happens on the flight arc, not here.
+ * Timing: ease-in-out so the spin accelerates then settles. */
+@keyframes cs-flyer-morph-flip {
+  0% {
+    transform: translate(var(--cs-morph-x), var(--cs-morph-y)) translate(-50%, -50%)
+      perspective(900px) rotateY(0deg) scale(1);
+  }
+  100% {
+    /* Even half-turns (720 = 2 full) so the stub face is upright, not
+     * mirrored from stopping on the back (540 ≡ 180). */
+    transform: translate(var(--cs-morph-x), var(--cs-morph-y)) translate(-50%, -50%)
+      perspective(900px) rotateY(720deg) scale(1);
+  }
+}
+@keyframes cs-flyer-sparkle-burst {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(0) scale(.35);
+  }
+  18% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1);
+  }
+}
+/* Hide stub + row body until impact; body then unfades L→R via JS. */
+.ticket-body {
+  flex: 1;
+  padding: 2px 4px 2px 0;
+  min-width: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.ticket-body h5 {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ticket-body h5 .ticket-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+.ticket-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ticket-text > h5 {
+  width: 100%;
+}
+.ticket-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sage);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ticket-text .ticket-meta {
+  margin-top: 0;
+}
+.ticket-people {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
+}
+.ticket-people .event-people-summary {
+  justify-content: flex-end;
+}
+.event-people-sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0 5px;
+  font-size: 11px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--sage) 82%, transparent);
+}
+.event-host-face {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+.event-host-face .avatar-stack {
+  display: inline-flex;
+}
+.event-host-face.event-pass-attribution {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sage);
+  line-height: 1.2;
+  max-width: 9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Timeline faces — chat badge is icon only (no circular container). */
+.ticket-people .avatar-chat {
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--chalk);
+}
+.ticket-people .avatar-chat .ico {
+  width: 9px;
+  height: 9px;
+  filter: none;
+}
+/* Sticker rides the title row so it doesn't grow stub height. */
+.ticket-body h5 .ticket-sticker {
+  margin-top: 0;
+  margin-left: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(42%, 9.5em);
+  padding: 1px 7px 1px 5px;
+  font-size: 11px;
+  font-weight: 650;
+  border-radius: 999px;
+}
+/* small event glyph before the title, sized to the surrounding text (still
+   used for chain links and detail pages, which keep their own inline icon) */
+.ticket-chan { font-size: 10px; color: var(--sage); font-weight: 700; margin-top: 0; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.ticket-server-ico {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bottle-2);
+  color: var(--chalk);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: -2px;
+}
+.ticket-server-ico .rail-pic {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+  border-radius: inherit;
+}
+.ticket-server-ico .rail-label {
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.ticket-chan .ico-inline { width: 12px; height: 12px; flex-shrink: 0; }
+.ticket-where { font-size: 13px; color: var(--sage); margin-top: 2px; }
+/* "Town" under the title — location-category micro-dot + plain place text */
+.ticket-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sage);
+  margin: 0;
+  min-width: 0;
+}
+.ticket-meta b { color: var(--chalk); font-weight: 700; }
+.ticket-meta-place {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ticket-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  max-width: 100%;
+  padding: 3px 9px 3px 7px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: .01em;
+  color: var(--chalk);
+  background: color-mix(in srgb, var(--marigold) 16%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--marigold) 40%, transparent);
+}
+.ticket-sticker-personal {
+  background: color-mix(in srgb, var(--sage) 14%, var(--card-bg));
+  border-color: color-mix(in srgb, var(--sage) 35%, transparent);
+  font-weight: 550;
+}
+.ticket-sticker .ico { width: 13px; height: 13px; flex: 0 0 auto; color: var(--marigold-dim); }
+.ticket-sticker-personal .ico { color: var(--sage); }
+.ticket-sticker span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.event-detail .ticket-sticker {
+  display: flex;
+  margin-top: 8px;
+  font-size: 14px;
+  padding: 6px 12px 6px 10px;
+  white-space: normal;
+}
+.event-detail .ticket-sticker span { white-space: normal; }
+.rsvp-btn {
+  border: 1px solid var(--moss);
+  border-radius: 99px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sage);
+}
+@media (hover: hover) and (pointer: fine) {
+  .rsvp-btn:hover { border-color: var(--sage); color: var(--chalk); }
+}
+
+.rsvp-btn.going.on { background: var(--marigold); border-color: var(--marigold); color: var(--on-accent); }
+.rsvp-btn.maybe.on { border-color: var(--sage); color: var(--chalk); background: var(--bottle-2); }
+.rsvp-btn.out.on { border-color: var(--ember); color: var(--ember); background: rgba(192,57,43,.08); }
+
+.ticket.past { opacity: .5; }
+/* 026 — response as card physics on the stub. */
+.ticket.declined {
+  opacity: 0.5;
+  filter: none;
+}
+.ticket.declined .ticket-stub-art {
+  filter: grayscale(1);
+  background: color-mix(in srgb, var(--chalk) 14%, var(--card-bg)) !important;
+  color: #8a8f98 !important;
+}
+.ticket.declined .ticket-stub-art > .ico {
+  opacity: 0.75;
+}
+.ticket.maybe:not(.declined) > .ticket-stub {
+  opacity: 0.78;
+}
+.ticket.unanswered:not(.declined) > .ticket-stub,
+.ticket.unanswered:not(.declined) > .ticket-stub-holder > .ticket-stub {
+  transform: rotate(-3.5deg);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.13);
+}
+/* Room so tilted stub corners don’t clip the day cluster. */
+.ticket.in-day-cluster.unanswered:not(.declined) {
+  padding-left: 2px;
+}
+/* 001/010 — peeking alternative stubs behind the current date. */
+.ticket-stub-holder {
+  position: relative;
+  --peeks: min(var(--alt-count, 0), 5);
+  width: calc(52px + var(--peeks) * 3px);
+  height: calc(72px + var(--peeks) * 3px);
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.ticket-stub-holder > .ticket-stub,
+.ticket-stub-holder > .ticket-building,
+.ticket-stub-holder > .ticket-full {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+.ticket-stub-under {
+  position: absolute;
+  width: 52px;
+  height: 72px;
+  left: calc(var(--peek, 1) * 3px);
+  top: calc(var(--peek, 1) * 3px);
+  z-index: calc(3 - var(--peek, 1));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--chalk) 8%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--chalk) 14%, transparent);
+  box-sizing: border-box;
+  opacity: calc(1 - (var(--peek, 1) * 0.04));
+}
+.ticket-card-stack-building.ticket-stub-holder {
+  width: calc(92px + var(--peeks) * 4px);
+  height: calc(128px + var(--peeks) * 4px);
+}
+.ticket-card-stack-building > .ticket-building,
+.ticket-card-stack-building > .ticket-full {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
+.ticket-card-stack-building > .ticket-stub-under {
+  width: 86px;
+  height: 122px;
+  left: calc(var(--peek, 1) * 4px);
+  top: calc(var(--peek, 1) * 4px);
+}
+.ticket-stub-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  z-index: 4;
+  background: var(--accent, #3E8BD8);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9px;
+  padding: 1px 6px;
+  border: 2px solid var(--page-bg, var(--bottle, #F1F1F2));
+  line-height: 1.35;
+  cursor: pointer;
+}
+.ticket-alts {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 550;
+  color: #2B6BA8;
+  cursor: pointer;
+}
+.ticket-alts.poll { color: var(--accent, #3E8BD8); }
+.ticket.has-alts.in-day-cluster {
+  padding-right: 2px;
+}
+
+/* Who said Yes / No on a suggested time */
+
+/* Canonical event-card face — Simple (no art) and Pictured (art + inset box). */
+.ticket-card.event-card-template,
+.ticket-stub.event-card-template,
+.ticket-building.event-card-template,
+.ticket-full.event-card-template,
+.ticket-card.event-card-template[data-size="stub"],
+.ticket-card.event-card-template[data-size="building"],
+.ticket-card.event-card-template[data-size="full"] {
+  --ec-ink: #120f1e;
+  --ec-muted: #6f6d79;
+  --ec-foot: #93919c;
+  --ec-box-bg: #fff;
+  --ec-box-border: #120f1e;
+  --ec-rule: rgba(18, 15, 30, 0.16);
+  --ec-stroke: #120f1e;
+  container-type: size;
+  position: relative;
+  box-sizing: border-box;
+  isolation: isolate;
+  display: block;
+  padding: 0;
+  gap: 0;
+  overflow: visible;
+  background: #fff;
+  color: var(--ec-ink);
+  border: 1.5px solid var(--ec-stroke);
+  border-radius: 6.47cqw;
+  box-shadow: 0 2px 8px rgba(18, 15, 30, 0.12);
+  font-family: var(--sans);
+  width: 92px;
+  height: 129px;
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+.ticket-stub.event-card-template,
+.ticket-card.event-card-template[data-size="stub"] {
+  width: 52px;
+  height: 73px;
+  flex: 0 0 52px;
+}
+.ticket-full.event-card-template,
+.ticket-card.event-card-template[data-size="full"] {
+  width: 220px;
+  height: 308px;
+}
+.tl-card-deck .ticket-full.event-card-template,
+.tl-card-deck .ticket-card.event-card-template[data-size="full"] {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 340 / 476;
+}
+.event-card-template.event-card-pictured {
+  background: #120f1e;
+  border-color: #120f1e;
+  overflow: hidden;
+}
+.event-card-template.event-card-treat-dark.event-card-pictured {
+  --ec-ink: #fff;
+  --ec-muted: #ccc9d1;
+  --ec-foot: #a3a1ab;
+  --ec-box-bg: #120f1e;
+  --ec-box-border: #fff;
+  --ec-rule: rgba(255, 255, 255, 0.24);
+}
+.event-card-template.event-card-treat-transparent.event-card-pictured {
+  --ec-ink: #fff;
+  --ec-muted: #e0dee5;
+  --ec-foot: #c2bfc9;
+  --ec-box-bg: rgba(13, 10, 23, 0.44);
+  --ec-box-border: rgba(255, 255, 255, 0.55);
+  --ec-rule: rgba(255, 255, 255, 0.28);
+}
+.event-card-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.event-card-art .event-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+.event-card-box {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+}
+.event-card-simple .event-card-box {
+  inset: 0;
+  padding: 7.06cqw 7.06cqw 7.06cqh;
+  display: flex;
+  flex-direction: column;
+}
+.event-card-pictured .event-card-box {
+  left: 3.53cqw;
+  right: 3.53cqw;
+  bottom: 2.52cqh;
+  height: 49.16cqh;
+  padding: 5.29cqw;
+  border: 1.5px solid var(--ec-box-border);
+  border-radius: 2.94cqw;
+  background: var(--ec-box-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.event-card-treat-transparent.event-card-pictured .event-card-box {
+  backdrop-filter: blur(13px);
+  -webkit-backdrop-filter: blur(13px);
+}
+.event-card-type-icon {
+  position: absolute;
+  top: 7.06cqw;
+  right: 7.06cqw;
+  width: 8.82cqw;
+  height: 8.82cqw;
+  color: var(--ec-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  line-height: 0;
+}
+.event-card-pictured .event-card-type-icon {
+  top: 5.88cqw;
+  right: 5.29cqw;
+  width: 7.65cqw;
+  height: 7.65cqw;
+}
+.event-card-type-icon.off { opacity: 0; pointer-events: none; }
+.event-card-type-icon > .ico {
+  width: 100%;
+  height: 100%;
+}
+.event-card-title,
+.event-card-simple .cs-card-title-input {
+  font-family: var(--sans);
+  font-weight: 700;
+  color: var(--ec-ink);
+  letter-spacing: -0.03em;
+  word-break: break-word;
+  overflow: hidden;
+}
+.event-card-simple .event-card-title,
+.event-card-simple .cs-card-title-input {
+  margin: 16.4cqh 10cqw 0 0;
+  font-size: 15.29cqw;
+  line-height: 1.08;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.event-card-pictured .event-card-title,
+.event-card-pictured .cs-card-title-input {
+  margin: 0 10cqw 0 0;
+  font-size: 9.41cqw;
+  line-height: 1.125;
+  max-height: 32cqh;
+}
+.event-card-simple .cs-card-title-input,
+.event-card-pictured .cs-card-title-input {
+  width: calc(100% - 10cqw);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.event-card-meta {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.06cqh;
+  min-width: 0;
+  overflow: hidden;
+}
+.event-card-simple .event-card-meta { gap: 1.89cqh; }
+.event-card-detail-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2.65cqw;
+  color: var(--ec-muted);
+  line-height: 1.1;
+}
+.event-card-time-row { color: var(--ec-ink); font-weight: 700; }
+.event-card-time-row .ticket-build-line { font-weight: 700; font-size: 4.71cqw; }
+.event-card-place-row .ticket-build-line,
+.event-card-who-row .ticket-build-line { font-weight: 400; font-size: 4.26cqw; }
+.event-card-simple .event-card-time-row .ticket-build-line { font-size: 5cqw; }
+.event-card-simple .event-card-place-row .ticket-build-line { font-size: 4.56cqw; }
+.event-card-map-link {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 3.6cqw;
+  font-weight: 650;
+  color: var(--periwinkle-text, #322a85);
+  text-decoration: none;
+  pointer-events: auto;
+}
+.event-card-simple .event-card-map-link { font-size: 3.8cqw; }
+.event-card-detail-row > .ico {
+  width: 5cqw;
+  height: 5cqw;
+  flex: 0 0 auto;
+}
+.event-card-detail-row .ticket-build-line,
+.event-card-detail-row .ticket-build-time-row,
+.event-card-detail-row .ticket-build-time {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.event-card-detail-row .ticket-build-time-row { display: flex; align-items: center; gap: 0.6cqw; }
+.event-card-detail-row .ticket-build-time-sep { color: inherit; font-size: inherit; }
+.event-card-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 2cqw;
+  margin-top: 3.36cqh;
+  padding-top: 2.73cqh;
+  border-top: 1px solid var(--ec-rule);
+  font-family: var(--sans);
+  font-size: 2.94cqw;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ec-foot);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.event-card-channel,
+.event-card-group { overflow: hidden; text-overflow: ellipsis; }
+.event-card-template > .ticket-borrow-badge { z-index: 4; }
+.event-card-template > .ticket-stub-live { z-index: 4; }
+.event-card-template > .ticket-pending-badge {
+  position: absolute;
+  z-index: 5;
+  left: 4cqw;
+  right: 4cqw;
+  top: 4cqw;
+}
+.event-card-template > .ticket-host-gem { z-index: 4; }
+
+/* The create/edit surface must remain large enough to inspect while styling. */

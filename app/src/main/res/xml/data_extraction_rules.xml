@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31+) backup/transfer rules. `allowBackup="false"` already
+  disables cloud backup everywhere and device-to-device transfer on API <= 30;
+  these rules close the API 31+ device-transfer channel for the encrypted secret
+  stores and host data files. Ciphertext is bound to a non-exportable
+  AndroidKeyStore key (see security/SecureStore.kt), so it is useless off-device
+  anyway — this keeps a new device from restoring undecryptable blobs and states
+  the intent for review.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="ash_cloudflare_secure_v2.xml"/>
+        <exclude domain="sharedpref" path="ash_host_at_rest_v1.xml"/>
+        <exclude domain="sharedpref" path="ash_approved_networks_v1.xml"/>
+        <exclude domain="file" path="servers.json"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="ash_cloudflare_secure_v2.xml"/>
+        <exclude domain="sharedpref" path="ash_host_at_rest_v1.xml"/>
+        <exclude domain="sharedpref" path="ash_approved_networks_v1.xml"/>
+        <exclude domain="file" path="servers.json"/>
+    </device-transfer>
+</data-extraction-rules>

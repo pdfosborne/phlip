@@ -1,0 +1,107 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Release signing is loaded from keystore.properties (git-ignored) so no secrets
+// enter the repo. If the file is absent, the release build falls back to debug signing.
+def keystorePropsFile = rootProject.file("keystore.properties")
+def hasReleaseKeystore = keystorePropsFile.exists()
+def keystoreProps = new Properties()
+if (hasReleaseKeystore) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+android {
+    namespace 'com.phlip'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.phlip"
+        minSdk 26
+        targetSdk 34
+        versionCode 2
+        versionName "1.0"
+        ndk {
+            // Release ships phone ABIs; debug adds x86_64 for emulator (see buildTypes).
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+    }
+
+    // Native libs (libcloudflared.so) ship from :tunnel; keep legacy packaging so
+    // ProcessBuilder can exec the extracted binary on Android 10+.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            ndk {
+                abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
+            }
+        }
+        release {
+            minifyEnabled false
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    // Shared web client (phlip-web/public → assets/public). Same tree as iOS.
+    sourceSets {
+        main {
+            assets.srcDirs += ["${rootProject.projectDir}/phlip-web"]
+        }
+    }
+}
+
+dependencies {
+    implementation project(':core')
+    implementation project(':server')
+    implementation project(':tunnel')
+
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.core.splashscreen
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    // WebViewAssetLoader — serves the bundled web client from a real https:// origin
+    // (appassets.androidplatform.net) so it works with hosting off/unreachable.
+    implementation libs.androidx.webkit
+    implementation libs.androidx.profileinstaller
+    // Play In-App Updates (FLEXIBLE) for security/patch delivery on Play installs.
+    implementation libs.play.app.update
+
+    testImplementation libs.junit
+
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.espresso.core
+}

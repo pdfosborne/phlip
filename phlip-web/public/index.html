@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=overlays-content">
+<title>Phlip</title>
+<meta name="description" content="Plan events and chat with your friend group — self-hosted and private.">
+<meta name="theme-color" content="#ffffff">
+<meta name="format-detection" content="telephone=no">
+<style>html,body,#pick-scrim{-webkit-tap-highlight-color:transparent}</style>
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' http: https: ws: wss:; worker-src 'self'; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
+<link rel="icon" href="favicon.ico?v=20260727i" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=20260727i">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=20260727i">
+<link rel="shortcut icon" href="favicon.ico?v=20260727i">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=20260727i">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Phlip">
+<link rel="stylesheet" href="style.css?v=20261014fix1">
+<script src="theme-boot.js?v=20260910archC"></script>
+</head>
+<body>
+
+<!-- main app: lands on the personal space immediately, no server required -->
+<div id="app" class="on">
+  <nav class="rail" id="rail" aria-label="Groups"></nav>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <button type="button" class="side-server-menu-btn" id="side-server-menu-btn" aria-haspopup="dialog" aria-expanded="false">
+        <h2 id="group-name"></h2>
+        <span class="side-server-menu-chevron" aria-hidden="true"></span>
+      </button>
+      <p class="side-connection-status" id="side-connection-status" hidden></p>
+      <div class="sidebar-head-host-row" id="sidebar-head-host-row">
+        <button type="button" class="side-host-reach" id="side-device-chip" hidden></button>
+      </div>
+    </div>
+    <div class="sidebar-body">
+      <div class="sidebar-scroll" id="side-list"></div>
+    </div>
+    <div class="side-user-panel" id="side-user-panel"></div>
+    <!-- Fills the left sidebar (not the right channel panel). -->
+    <div class="side-overlay" id="side-overlay" hidden aria-hidden="true">
+      <div class="side-overlay-head">
+        <button type="button" class="side-overlay-back" id="side-overlay-back" aria-label="Back"></button>
+        <h3 id="side-overlay-title">Server settings</h3>
+        <div class="side-overlay-actions" id="side-overlay-actions" hidden></div>
+      </div>
+      <div class="side-overlay-body" id="side-overlay-body"></div>
+    </div>
+  </aside>
+
+  <div class="channel-panel-scrim" id="channel-panel-scrim" aria-hidden="true"></div>
+  <aside class="channel-panel" id="channel-panel" aria-label="My calendar" aria-hidden="true">
+    <div class="channel-panel-head">
+      <button type="button" class="channel-panel-back" id="channel-panel-back" hidden aria-label="Back"></button>
+      <div class="channel-panel-head-copy">
+        <h3 id="channel-panel-title">Channel</h3>
+        <p class="channel-panel-sub" id="channel-panel-sub" hidden>All your accepted events</p>
+      </div>
+      <div class="channel-panel-tabs-top" id="channel-panel-tabs-top" role="tablist" aria-label="Panel tools">
+        <button type="button" class="channel-panel-tab is-icon" role="tab" data-panel-tab="calendar" id="channel-panel-tab-calendar" aria-selected="false" aria-label="My calendar" title="My calendar"></button>
+        <button type="button" class="channel-panel-tab is-icon" role="tab" data-panel-tab="people" id="channel-panel-tab-people" aria-selected="false" aria-label="People" title="People"></button>
+        <button type="button" class="channel-panel-tab is-icon is-trail" role="tab" data-panel-tab="notifications" id="channel-panel-tab-notifications" aria-selected="false" aria-label="Notifications" title="Notifications"></button>
+      </div>
+      <button type="button" class="channel-panel-close" id="channel-panel-close" hidden aria-label="Close"></button>
+    </div>
+    <div class="channel-panel-body" id="channel-panel-body"></div>
+    <div class="channel-panel-app" id="channel-panel-app"></div>
+    <div class="channel-panel-tabs" id="channel-panel-tabs" role="tablist" aria-label="Panel feed" hidden>
+      <button type="button" class="channel-panel-tab is-icon" role="tab" data-panel-tab="description" id="channel-panel-tab-description" aria-selected="false" aria-label="Description" title="Description"></button>
+      <button type="button" class="channel-panel-tab is-icon" role="tab" data-panel-tab="events" id="channel-panel-tab-events" aria-selected="false" aria-label="Events" title="Events"></button>
+      <button type="button" class="channel-panel-tab is-icon" role="tab" data-panel-tab="chat" id="channel-panel-tab-chat" aria-selected="false" aria-label="Chat" title="Chat"></button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="main-head">
+      <button type="button" class="back" id="btn-back" aria-label="Back to servers and channels"></button>
+      <div class="head-center" id="board-title-btn" aria-expanded="false" aria-controls="board-options">
+        <h3 id="view-title"></h3>
+        <span class="view-link-marks" id="view-link-marks" hidden></span>
+        <span class="board-member-line">
+          <span class="sub" id="view-sub"></span>
+          <span class="board-title-chev" id="board-title-chev" hidden aria-hidden="true"></span>
+        </span>
+      </div>
+      <div class="head-actions" id="head-actions">
+        <button type="button" class="head-icon-btn" id="quick-manage" aria-label="Quick manage" title="Quick manage" hidden></button>
+        <button type="button" class="head-icon-btn" id="channel-info-btn" aria-label="My calendar" title="My calendar" hidden></button>
+      </div>
+      <div class="board-options" id="board-options" hidden role="dialog" aria-label="Board options"></div>
+    </header>
+    <div class="board-nav-row" id="board-nav-row" hidden>
+      <button type="button" class="board-back-chat" id="board-back-chat" hidden>Back to chat</button>
+      <nav class="board-event-tabs" id="board-event-tabs" role="tablist" aria-label="Conversation views"></nav>
+    </div>
+    <div class="reconnect" id="reconnect">Syncing with host…</div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<!-- Deferred classic scripts still execute in document order, so the existing shared
+  global environment is preserved while the asset loader can fetch in parallel. -->
+<script defer src="register-sw.js?v=20261011cleanup1"></script>
+<script defer src="scripts/boot/crypto-lite.js?v=20260726b"></script>
+<script defer src="scripts/boot/legal-docs.js?v=20260726b"></script>
+<script defer src="scripts/boot/core.js?v=20261011cleanup1"></script>
+<script defer src="scripts/boot/ash-gesture.js?v=20260914ch1"></script>
+<script defer src="scripts/boot/storage.js?v=20260816a"></script>
+<script defer src="scripts/vendor/dexie-4.4.5.min.js?v=4.4.5"></script>
+<script defer src="scripts/demo/demo-mode.js?v=20260907demo1"></script>
+<script defer src="scripts/boot/local-sync-store.js?v=20261015v2"></script>
+<script defer src="scripts/demo/demo-store.js?v=20260908demo2"></script>
+<script defer src="scripts/boot/dom-events.js?v=20260816a"></script>
+<script defer src="scripts/boot/ui-confirm.js?v=20260816a"></script>
+<script defer src="scripts/boot/perf.js?v=20260806a"></script>
+<script defer src="scripts/boot/feel.js?v=20261011cleanup1"></script>
+<script defer src="scripts/boot/ash-feedback.js?v=20260912s1"></script>
+<script defer src="scripts/boot/crypto.js?v=20261011hashmode2"></script>
+<script defer src="scripts/net/net-part1.js?v=20261015v2"></script>
+<script defer src="scripts/net/net-part2.js?v=20261015v2"></script>
+<script defer src="scripts/net/net-part3.js?v=20261015v2"></script>
+<script defer src="scripts/net/pathselect.js?v=20260902rejoin1"></script>
+<script defer src="scripts/handlers/handlers-clone.js?v=20260911archE23"></script>
+<script defer src="scripts/handlers/handlers-dispatch.js?v=20261015v2"></script>
+<script defer src="scripts/personal/personal.js?v=20261015v2"></script>
+<script defer src="scripts/personal/device-calendar.js?v=20260921vault1"></script>
+<script defer src="scripts/personal/personal-space.js?v=20260919drive1"></script>
+<script defer src="scripts/demo/demo-fixture.js?v=20261015v5"></script>
+<script defer src="scripts/demo/demo-boot.js?v=20261010demo1"></script>
+<script defer src="scripts/personal/backup.js?v=20261011cleanup1"></script>
+<script defer src="scripts/helpers/icons-lucide-pack.js?v=20260921dock6"></script>
+<script defer src="scripts/helpers/icons-phosphor-sports-pack.js?v=20260921sports1"></script>
+<script defer src="scripts/helpers/icons-phosphor-objects-pack.js?v=20260921objects1"></script>
+<script defer src="scripts/helpers/helpers-part1.js?v=20261014fix2"></script>
+<script defer src="scripts/helpers/helpers-part2.js?v=20261014fix2"></script>
+<script defer src="scripts/helpers/helpers-part3.js?v=20261014fix2"></script>
+<script defer src="scripts/helpers/helpers-part4.js?v=20261011cleanup1"></script>
+<script defer src="scripts/shell/modal.js?v=20260913f1"></script>
+<script defer src="scripts/helpers/event-short-name.js?v=20261011hashmode2"></script>
+<script defer src="scripts/shell/nav.js?v=20261011hashmode2"></script>
+<script defer src="scripts/shell/chatScope.js?v=20261015v2"></script>
+<script defer src="scripts/shell/served.js?v=20260907demo1"></script>
+<script defer src="scripts/render/render-core.js?v=20260816p4"></script>
+<script defer src="scripts/render/render-rail.js?v=20261011cleanup1"></script>
+<script defer src="scripts/render/render-side-overlay.js?v=20261010consover1"></script>
+<script defer src="scripts/render/render-share.js?v=20260919drive1"></script>
+<script defer src="scripts/render/render-host-console.js?v=20261015v2"></script>
+<script defer src="scripts/render/render-help.js?v=20260915review2"></script>
+<script defer src="scripts/render/render-sidebar.js?v=20261015v2"></script>
+<script defer src="scripts/render/render-sidebar-reorder.js?v=20260915tidy1"></script>
+<script defer src="scripts/render/render-backup.js?v=20260816p4"></script>
+<script defer src="scripts/render/render-user-settings.js?v=20261015v2"></script>
+<script defer src="scripts/render/user-profile-overlay.js?v=20261015v2"></script>
+<script defer src="scripts/render/render-join-parse.js?v=20260911archG"></script>
+<script defer src="scripts/render/render-join-modal.js?v=20260920drive3"></script>
+<script defer src="scripts/render/render-add-server.js?v=20260921nav1"></script>
+<script defer src="scripts/render/render-join-leave.js?v=20260914shown1"></script>
+<script defer src="scripts/render/render-deck-icons.js?v=20261011cleanup1"></script>
+<script defer src="scripts/render/render-deck-editor-body.js?v=20261010reactmgr1"></script>
+<script defer src="scripts/render/render-roles.js?v=20260914roles1"></script>
+<script defer src="scripts/render/render-locations.js?v=20260921nav1"></script>
+<script defer src="scripts/channel/channel-access.js?v=20260914roles1"></script>
+<script defer src="scripts/channel/channel-linked-feeds.js?v=20260816p2"></script>
+<script defer src="scripts/channel/channel-form-components.js?v=20260901cal1"></script>
+<script defer src="scripts/channel/channel-invites.js?v=20260816p2"></script>
+<script defer src="scripts/channel/channel-panel-state.js?v=20261015v2"></script>
+<script defer src="scripts/channel/channel-panel.js?v=20261010panel1"></script>
+<script defer src="scripts/channel/channel-panel-calendar.js?v=20261011cleanup1"></script>
+<script defer src="scripts/channel/channel-panel-actions.js?v=20260914ch1"></script>
+<script defer src="scripts/channel/channel-panel-gestures.js?v=20261010leftover1"></script>
+<script defer src="scripts/channel/channel-settings.js?v=20261010allchat2"></script>
+<script defer src="scripts/channel/board-settings-sheet.js?v=20261014fix1"></script>
+<script defer src="scripts/render/sidebar-menus.js?v=20261011cleanup1"></script>
+<script defer src="scripts/channel/channel-moderation.js?v=20261010delboards1"></script>
+<script defer src="scripts/channel/channel-shell.js?v=20260919conv4"></script>
+<script defer src="scripts/channel/channel-view.js?v=20261015v4"></script>
+<script defer src="scripts/channel/channel-console.js?v=20261010consover1"></script>
+<script defer src="scripts/channel/channel-members.js?v=20261015v2"></script>
+<script defer src="scripts/channel/channel-history.js?v=20261015v2"></script>
+<script defer src="scripts/channel/channel-agenda.js?v=20261011cleanup1"></script>
+<script defer src="scripts/channel/channel-events-board.js?v=20260914boards1"></script>
+<script defer src="scripts/channel/channel-ticket-cards.js?v=20261015v2"></script>
+<script defer src="scripts/channel/channel-timeline-view.js?v=20261011cleanup1"></script>
+<script defer src="scripts/channel/channel-timeline-cards.js?v=20260919conv55"></script>
+<script defer src="scripts/channel/channel-chains.js?v=20261010chainact1"></script>
+<script defer src="scripts/channel/channel-suggestions.js?v=20260912e1"></script>
+<script defer src="scripts/channel/channel-chat-part1.js?v=20261014fix2"></script>
+<script defer src="scripts/channel/channel-chat-part2.js?v=20261015v4"></script>
+<script defer src="scripts/channel/channel-chat-part3.js?v=20261014fix2"></script>
+<script defer src="scripts/channel/channel-chat-part4.js?v=20261015v5"></script>
+<script defer src="scripts/channel/channel-board-nav.js?v=20261011cleanup1"></script>
+<script defer src="scripts/channel/channel-event-panel.js?v=20261015v4"></script>
+<script defer src="scripts/channel/board-model.js?v=20261014fix1"></script>
+<script defer src="scripts/channel/board-card.js?v=20261014fix2"></script>
+<script defer src="scripts/channel/board-feed.js?v=20261015v5"></script>
+<script defer src="scripts/channel/board-pages.js?v=20261015v2"></script>
+<script defer src="scripts/channel/board-continue.js?v=20261014fix1"></script>
+<script defer src="scripts/channel/board-composer.js?v=20261013clean1"></script>
+<script defer src="scripts/channel/board-from-chat.js?v=20261014fix2"></script>
+<script defer src="scripts/channel/board-home.js?v=20261014link1"></script>
+<script defer src="scripts/channel/board-select.js?v=20261014fix2"></script>
+<script defer src="scripts/channel/board-drag.js?v=20261014fix1"></script>
+<script defer src="scripts/channel/board-event-nav.js?v=20261014fix2"></script>
+<script defer src="scripts/channel/board-destination.js?v=20261014rev1"></script>
+<script defer src="scripts/shell/panel.js?v=20260810a"></script>
+<script defer src="scripts/host/host-settings-part1.js?v=20261011cleanup1"></script>
+<script defer src="scripts/host/host-settings-part2.js?v=20260914nav2"></script>
+<script defer src="scripts/host/host-settings-part3.js?v=20260911add7"></script>
+<script defer src="scripts/host/hotspot-join-part1.js?v=20261011cleanup1"></script>
+<script defer src="scripts/host/hotspot-join-part2.js?v=20260911archG"></script>
+<script defer src="scripts/host/sharing-checks.js?v=20260914"></script>
+<script defer src="scripts/host/hosting-guide.js?v=20260920drive5"></script>
+<script defer src="scripts/host/sharing-settings.js?v=20260914"></script>
+<script defer src="scripts/pitch/pitch-part4.js?v=20260922signup1"></script>
+<script defer src="scripts/pitch/event-card-styles.js?v=20261011cleanup1"></script>
+<script defer src="scripts/share/event-ics.js?v=20260910archC"></script>
+<script defer src="scripts/hand/hand-storage.js?v=20261011cleanup1"></script>
+<script defer src="scripts/hand/hand-categories.js?v=20260911archG"></script>
+<script defer src="scripts/hand/hand-cards.js?v=20261015v2"></script>
+<script defer src="scripts/hand/hand-typed-backlog.js?v=20261011cleanup1"></script>
+<script defer src="scripts/hand/hand-locations.js?v=20261011cleanup1"></script>
+<script defer src="scripts/channel/channel-timeline-settings.js?v=20260925evt1"></script>
+<script defer src="scripts/hand/hand-availability.js?v=20261011cleanup1"></script>
+<script defer src="scripts/hand/hand-time-blocks.js?v=20260912e1"></script>
+<script defer src="scripts/hand/hand-agenda-week.js?v=20260911archG"></script>
+<script defer src="scripts/hand/hand-create-entry.js?v=20261011cleanup1"></script>
+<script defer src="scripts/hand/hand-create-swipe-model.js?v=20260911archB"></script>
+<script defer src="scripts/hand/hand-create-time.js?v=20260907draft20"></script>
+<script defer src="scripts/hand/hand-plan-parse.js?v=20261014link1"></script>
+<script defer src="scripts/hand/hand-create-draft.js?v=20261014fix2"></script>
+<script defer src="scripts/hand/hand-create-suggest.js?v=20261015v2"></script>
+<script defer src="scripts/hand/hand-create-quick.js?v=20260911archB"></script>
+<script defer src="scripts/hand/hand-core.js?v=20261011cleanup1"></script>
+<script defer src="scripts/hand/hand-reactions.js?v=20260915draw1"></script>
+<script defer src="scripts/hand/hand-share.js?v=20260911archG"></script>
+<script defer src="scripts/hand/hand-apply.js?v=20260911archE23"></script>
+<script defer src="scripts/late/splash.js?v=20260807notut1"></script>
+<script defer src="scripts/late/onboarding.js?v=20261011cleanup1"></script>
+<script defer src="scripts/shell/ash-back.js?v=20261014fix1"></script>
+<script defer src="scripts/late/wireboot.js?v=20261015v3"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+# Dynamic template class names — JS builds these via `class-${var}` so the
+# tokenizer never sees the literal selector token. Keep the CSS; ignore in
+# tools/find_dead_css.py (--ignore tools/dead_css_ignore.txt).
+
+# RSVP badge / ticket-choice states (`on-${mine}` / `on-${rsvp}`)
+on-going
+on-maybe
+on-out
+
+# Sealed sleeve face (`sleeve-${id}`)
+sleeve-default
+sleeve-ink
+sleeve-aurora
+sleeve-ember
+sleeve-meadow
+
+# Pitch card backs (`back-${back}` from PITCH_CARD_BACKS ids)
+back-default
+back-ink
+back-aurora
+back-ember
+back-meadow
+
+# Pitch day segments (`pc-day-seg-${id}`)
+pc-day-seg-morning
+pc-day-seg-afternoon
+pc-day-seg-evening
+
+# Pitch period chips (`pd-period-${id}`)
+pd-period-morning
+pd-period-afternoon
+pd-period-evening
+
+# Sidebar role marks (`side-role-mark-${cls}`)
+side-role-mark-admin
+side-role-mark-mods
+
+# Live broadcast scope dots (`live-${scope}`)
+live-lan
+live-public
+
+# Hand card kinds (`k-${kind}`)
+k-people
+k-react
+
+# Day-spine event lane (`ds-ev-lane-${lane}` — lane toggles 0/1)
+ds-ev-lane-1
+
+# Rolling Timeline RSVP states (`tl-event-<kind>`)
+tl-event-unanswered
+tl-event-compact
+tl-event-declined
+
+# Event-card treatments (`event-card-treat-${treat}` in channel-ticket-cards.js)
+event-card-treat-dark
+event-card-treat-transparent

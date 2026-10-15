@@ -1,0 +1,15 @@
+Phlip Hosting
+Copyright 2026 the Phlip authors
+
+This product includes software developed for Phlip hosting
+(core, server, and tunnel libraries).
+
+---
+
+cloudflared (bundled native binary in :tunnel)
+
+See tunnel/src/main/assets/licenses/cloudflared-LICENSE.txt and
+tunnel/src/main/assets/licenses/cloudflared-ATTRIBUTION.txt.
+
+cloudflared is Copyright (c) Cloudflare, Inc. and licensed under the
+Apache License, Version 2.0.

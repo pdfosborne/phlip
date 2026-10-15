@@ -1,0 +1,114 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.multiplatform'
+}
+
+apply from: rootProject.file('gradle/android-library-defaults.gradle')
+
+// iOS targets need Kotlin/Native Ivy repos (blocked by FAIL_ON_PROJECT_REPOS on
+// Windows). Enable on Mac always, or with -Pphlip.enableIos=true (Mac CI).
+def enableIos = project.findProperty('phlip.enableIos') == 'true' ||
+    System.getProperty('os.name', '').toLowerCase(Locale.ROOT).contains('mac')
+
+kotlin {
+    applyDefaultHierarchyTemplate()
+
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = '1.8'
+                freeCompilerArgs += ['-Xexpect-actual-classes']
+            }
+        }
+    }
+
+    if (enableIos) {
+        iosX64()
+        iosArm64()
+        iosSimulatorArm64()
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation libs.kotlinx.coroutines.core
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation libs.kotlin.test
+            }
+        }
+        androidMain {
+            dependencies {
+                implementation libs.androidx.core.ktx
+            }
+        }
+    }
+}
+
+android {
+    namespace 'app.phlip.core'
+
+    defaultConfig {
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'src/androidMain/AndroidManifest.xml'
+        }
+    }
+}
+
+/**
+ * T1.3 — fail if commonMain picks up Android / SharedPreferences / java.io.File.
+ * Run: ./gradlew :core:checkCommonMainPortable
+ */
+tasks.register('checkCommonMainPortable') {
+    group = 'verification'
+    description = 'Fail if commonMain contains android.* or other non-portable imports'
+    def commonDir = file('src/commonMain')
+    doLast {
+        if (!commonDir.exists()) {
+            throw new GradleException("commonMain missing: ${commonDir}")
+        }
+        def banned = [
+            ~/import\s+android\./,
+            ~/import\s+androidx\./,
+            ~/import\s+java\.io\.File\b/,
+            ~/import\s+android\.content\.SharedPreferences/,
+        ]
+        def offenders = []
+        commonDir.eachFileRecurse { f ->
+            if (!f.name.endsWith('.kt')) return
+            def text = f.getText('UTF-8')
+            banned.each { pat ->
+                if (pat.matcher(text).find()) {
+                    offenders << "${f.path}"
+                }
+            }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException(
+                "commonMain is not portable (android.*/banned imports):\n  " +
+                    offenders.unique().join('\n  ')
+            )
+        }
+        logger.lifecycle('checkCommonMainPortable: OK')
+    }
+}
+
+tasks.named('check').configure { dependsOn('checkCommonMainPortable') }
+
+if (enableIos) {
+    tasks.named('check').configure {
+        dependsOn('compileKotlinIosSimulatorArm64')
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        freeCompilerArgs += ['-Xexpect-actual-classes']
+    }
+}

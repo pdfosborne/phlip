@@ -1,0 +1,312 @@
+﻿/* =============================================================================
+   Phlip component stylesheet: Foundation — tokens, themes, resets
+   Cascade order is managed by ../style.css -- do not import this file directly.
+   ============================================================================= */
+/* Phlip semantic surfaces. The public names below mirror the shared style guide;
+   the legacy nature aliases remain so older components inherit the new system. */
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("../fonts/AtkinsonHyperlegible-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("../fonts/AtkinsonHyperlegible-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --surface-1: #f4f3ee;
+  --surface-2: #ffffff;
+  --surface-3: #f8f9f9;
+  --surface-3-strong: #ebedef;
+  --page-bg: #f8f9fa;
+  --border: #e2e0d8;
+  --border-strong: #d3d1c7;
+  --text-primary: #1c1c1a;
+  --text-secondary: #6b6a63;
+  --text-muted: #74716a;
+  --periwinkle-base: #7371f7;
+  --periwinkle-tint-soft: rgba(115, 113, 247, 0.10);
+  --periwinkle-tint: rgba(115, 113, 247, 0.22);
+  --periwinkle-tint-strong: rgba(115, 113, 247, 0.40);
+  --periwinkle-border: #5b52e0;
+  --periwinkle-text: #322a85;
+  --notify-blue: #4f7cff;
+  --red-border: #c96b6b;
+  --red-text: #7a2f2f;
+  --radius: 8px;
+
+  --surface: var(--surface-2);
+  --surfaceRaised: var(--surface-1);
+  --onSurface: var(--text-primary);
+  --accent: var(--periwinkle-base);
+  --accentMuted: var(--periwinkle-border);
+  --success: #2f9e6b;
+  --ink: var(--page-bg);
+  /* Nature aliases → semantics (existing call sites keep working) */
+  --bottle: var(--surface);
+  --bottle-2: var(--surface-3);
+  --moss: var(--border);
+  --marigold: var(--accent);
+  --marigold-dim: var(--accentMuted);
+  --accent-hi: #8d8bff;
+  --on-accent: #ffffff;
+  --chalk: var(--onSurface);
+  --sage: var(--text-secondary);
+  --ember: #c0392b;
+  --rail-width: 64px;
+  --sidebar-width: 236px;
+  /* Info panel matches the open nav stack (server rail + server sidebar). */
+  --nav-stack-width: calc(var(--rail-width) + var(--sidebar-width));
+  --card-bg: var(--surface-2);
+  --ticket-field: var(--surface-1);
+  --ticket-field-raised: var(--surface-2);
+  --tint-accent: var(--periwinkle-tint-soft);
+  /* First-run welcome card back — a themeable playing card (light & dark). */
+  --card-navy: #1E2338;
+  --card-gold: #C8A15A;
+  --card-gold-ink: #E8D6A8;
+  /* Focus borders + active-button fills — follows pack theme via marigold. */
+  --highlight: var(--marigold);
+  --highlight-dim: var(--marigold-dim);
+  --highlight-tint: var(--tint-accent);
+  /* UI chrome (outline buttons, text indicators) — overridden at runtime from Day color preset. */
+  --ui-accent: var(--accentMuted);
+  --ui-accent-dim: var(--accentMuted);
+  --ui-tint: var(--tint-accent);
+  /* Day numerals on pills + rails: weekday slate / weekend darker. */
+  --day-ink: #1a1d24;
+  --day-ink-weekend: #0c0e12;
+  --danger-wash: rgba(201, 107, 107, 0.12);
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --sans: "Atkinson Hyperlegible", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* iOS standalone / notch — centralized safe-area + stable viewport height. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --app-height: 100dvh;
+}
+
+/* Design-system tokens. The spec is design-system/ (see README.md there).
+   Component CSS uses these through var(); a raw value is drift
+   (tools/design_token_audit.py). Add new tokens here and nowhere else. */
+:root {
+  /* Colour (01-color.md) */
+  --action-base: var(--text-primary);
+  --on-action: #ffffff;
+  --menu-button-base: #171246;
+  --on-menu-button: #ffffff;
+  --success-text: #1f7a52;
+  --border-control: #8c887e;
+  --focus-ring-color: var(--periwinkle-border);
+  --scrim-modal: rgba(20, 18, 15, 0.45);
+  --scrim-menu: rgba(28, 28, 26, 0.20);
+  --scrim-clear: rgba(28, 28, 26, 0.01);
+  --veil-create: color-mix(in srgb, var(--page-bg) 86%, transparent);
+  --dock-edge-from: var(--periwinkle-base);
+  --dock-edge-to: var(--periwinkle-border);
+  --dock-edge: 1.5px;
+
+  /* Typography and icons (02-typography.md) */
+  --fw-regular: 400;
+  --fw-bold: 700;
+  --fs-badge: 9px;
+  --fs-caption: 11px;
+  --fs-meta: 12px;
+  --fs-small: 13px;
+  --fs-body-sm: 14px;
+  --fs-body: 15px;
+  --fs-title: 16px;
+  --fs-heading: 18px;
+  --fs-display: 22px;
+  --fs-hero: 28px;
+  --fs-input: 16px;
+  --lh-none: 1;
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-body: 1.45;
+  --lh-reading: 1.5;
+  --ls-caps: 0.04em;
+  --ls-numeric: 0.02em;
+  --ls-heading: -0.01em;
+  --icon-xs: 12px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 20px;
+  --icon-xl: 24px;
+
+  /* Spacing (03-layout.md): every even step to 16, then 20-48 */
+  --space-0: 0px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-panel: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --gutter: 12px;
+  --pad-card: 12px;
+  --pad-sheet: 16px;
+  --pad-dialog: 24px;
+  --gap-feed: 10px;
+
+  /* Radius (03-layout.md); --radius above is the older name for --radius-sm */
+  --radius-gem: 2px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-panel: 14px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+
+  /* Layout (03-layout.md) */
+  --content-max: 620px;
+  --row-min: 48px;
+  --hit-min: 48px;
+  --hit-min-fine: 24px;
+
+  /* Elevation (04-elevation.md) */
+  --shadow-float: 0 3px 8px rgba(41, 36, 56, 0.03), 0 1px 2px rgba(41, 36, 56, 0.02);
+  --shadow-xs: 0 1px 2px rgba(28, 28, 26, 0.06);
+  --shadow-lift: 0 10px 20px -6px rgba(28, 28, 26, 0.16), 0 2px 6px rgba(28, 28, 26, 0.06);
+  --shadow-pop: 0 12px 32px rgba(28, 28, 26, 0.16);
+  --shadow-fab: 0 8px 22px rgba(28, 28, 26, 0.22);
+  --shadow-tab: 0 -6px 22px rgba(28, 28, 26, 0.12);
+  --shadow-bar: 0 -4px 16px rgba(28, 28, 26, 0.08);
+  --shadow-sheet: 0 -14px 34px rgba(28, 28, 26, 0.18);
+  --shadow-panel: -3px 0 12px rgba(28, 28, 26, 0.16);
+  --shadow-modal: 0 20px 50px rgba(28, 28, 26, 0.30);
+  --ring-selected: 0 0 0 2px var(--periwinkle-base);
+
+  /* Layers (04-elevation.md); 0-9 stay component-local */
+  --z-sticky: 10;
+  --z-dock: 20;
+  --z-float: 40;
+  --z-create: 50;
+  --z-drag: 80;
+  --z-panel: 90;
+  --z-sheet: 100;
+  --z-menu: 110;
+  --z-modal: 200;
+  --z-modal-sheet: 250;
+  --z-toast: 300;
+  --z-coach: 400;
+
+  /* Motion (05-motion.md) */
+  --dur-press: 80ms;
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-panel: 220ms;
+  --dur-emphasis: 280ms;
+  --dur-reward: 440ms;
+  --dur-morph: 520ms;
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.5, 1);
+  --ease-fade: ease;
+  --ease-linear: linear;
+}
+
+@media (max-width: 520px) {
+  :root { --gutter: 10px; }
+}
+
+/* Fine pointers get faster panel motion (05-motion.md MOT-3). */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --dur-panel: 180ms;
+    --dur-emphasis: 220ms;
+  }
+}
+
+/* Reduced motion collapses every duration; must stay after the block above. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-press: 1ms;
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-panel: 1ms;
+    --dur-emphasis: 1ms;
+    --dur-reward: 1ms;
+    --dur-morph: 1ms;
+  }
+}
+
+@supports (height: 100svh) {
+  :root { --app-height: 100svh; }
+}
+
+* { box-sizing: border-box; margin: 0; }
+html {
+  height: var(--app-height);
+  max-height: var(--app-height);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: var(--app-height);
+  max-height: var(--app-height);
+  background: var(--ink);
+  color: var(--chalk);
+  font-family: var(--sans);
+  /* Stop the whole-page rubber-band / pull-to-refresh in the installed PWA. */
+  overscroll-behavior: none;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+#app {
+  height: 100%;
+  max-height: 100%;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+/* Keyboard already resized/overlays the viewport — don't pad IME height again. */
+html.ime-open {
+  --safe-bottom: 0px;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+input, textarea { font: inherit; color: var(--chalk); }
+:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* App-like everywhere (Oct 2026): a long-press never starts a text selection
+   or the link/image callout — in chat, the sidebar, menus and sheets alike.
+   Typing fields and text meant for copying stay selectable; message text is
+   copied with the long-press Copy action. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+.ss-server-url,
+.is-selectable {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}

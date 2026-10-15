@@ -1,0 +1,19 @@
+name = "phlip-demo"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+# Static-asset Workers cannot bind to a path (phlipapp.com/demo*). Use a
+# hostname-wide route on a dedicated subdomain instead.
+[assets]
+directory = "../public"
+binding = "ASSETS"
+run_worker_first = true
+html_handling = "auto-trailing-slash"
+not_found_handling = "single-page-application"
+
+# Custom Domain (not a path route): Cloudflare creates DNS + certs for the
+# subdomain. Asset Workers cannot use phlipapp.com/demo*.
+[[routes]]
+pattern = "demo.phlipapp.com"
+custom_domain = true

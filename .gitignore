@@ -1,0 +1,17 @@
+.gradle/
+build/
+*/build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+keystore.properties
+*.jks
+*.keystore
+.cloudflared-build/
+compile-out.txt
+*.log
+node_modules/
+DerivedData/
+*.xcodeproj
+xcuserdata/

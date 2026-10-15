@@ -1,0 +1,8 @@
+Vendored from the local Bloub fork
+(based on https://github.com/jeremy-prt/bloub, MIT License, Copyright (c) 2026
+Jérémy Perret). See LICENSE in this directory.
+
+Only `src/bot/` (framework-free engine) and the `lookTarget` gaze helper are
+copied. The Vue UI is not included.
+
+Phlip pins the body to shape id `squircle` for every expression and animation.

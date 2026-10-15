@@ -1,0 +1,1437 @@
+﻿/* =============================================================================
+   Phlip component stylesheet: Event detail, chains, RSVP,
+    0 0 12px color-mix(in srgb, var(--highlight, var(--marigold)) 48%, transparent) {
+  border-color: #60a5fa;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, #93c5fd 78%, transparent),
+    0 0 13px color-mix(in srgb, #3b82f6 62%, transparent),
+    0 0 0 4px color-mix(in srgb, #60a5fa 72%, transparent),
+    0 0 13px color-mix(in srgb, #2563eb 48%, transparent);
+}
+
+/* 021 — attached chain strip under the primary ticket */
+.ticket.has-chain-strip {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+/* Keep gutter duration span visible (overflow hidden would clip it). */
+.ticket.in-day-cluster.has-chain-strip {
+  overflow: visible;
+}
+.chain-strip {
+  flex: 1 1 100%;
+  width: 100%;
+  margin: 4px 0 0;
+  background: var(--ticket-field);
+  border-top: 1px solid color-mix(in srgb, var(--moss) 80%, transparent);
+  padding: 8px 0 7px;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+}
+/* Focused primary: chain strip + chips share the focus surface. */
+.ticket.focused .chain-strip {
+  background: var(--ticket-field-raised, var(--card-bg));
+  border-top-color: color-mix(in srgb, var(--highlight, var(--marigold)) 7%, transparent);
+}
+.ticket.focused .chain-chip-prop {
+  background: var(--ticket-field-raised, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--highlight, var(--marigold)) 14%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--highlight, var(--marigold)) 8%, transparent);
+}
+.ticket.focused .chain-chip-prop .chain-chip-nm {
+  color: var(--chalk);
+  font-weight: 600;
+}
+.ticket.focused .chain-chip-real {
+  background: var(--ticket-field-raised, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--highlight, var(--marigold)) 14%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--highlight, var(--marigold)) 8%, transparent);
+}
+.ticket.focused .chain-strip-ar {
+  color: color-mix(in srgb, var(--chalk) 45%, transparent);
+}
+.chain-strip-scroll {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  touch-action: pan-y;
+  padding-bottom: 1px;
+}
+.chain-strip-scroll::-webkit-scrollbar { display: none; }
+/* Timeline chips are display-only — taps open primary via strip/ticket handlers. */
+.events-scroll .chain-chip {
+  pointer-events: none;
+}
+.events-scroll .chain-strip {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.chain-strip-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.chain-strip-ar {
+  color: color-mix(in srgb, var(--chalk) 35%, transparent);
+  font-size: 13px;
+  flex-shrink: 0;
+  padding: 0 1px;
+}
+.chain-strip-or {
+  color: color-mix(in srgb, var(--chalk) 40%, transparent);
+  font-size: 11.5px;
+  font-style: italic;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+.chain-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 15px;
+  padding: 5px 10px 5px 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  max-width: min(280px, 82vw);
+}
+.chain-chip-prop {
+  background: color-mix(in srgb, var(--chalk) 5%, var(--card-bg));
+  border: 1px dashed color-mix(in srgb, var(--chalk) 22%, transparent);
+}
+.chain-chip-prop .chain-chip-nm {
+  color: color-mix(in srgb, var(--chalk) 78%, transparent);
+  font-weight: 550;
+}
+.chain-chip-real {
+  background: color-mix(in srgb, var(--chalk) 8%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--chalk) 18%, transparent);
+}
+.chain-chip-real .chain-chip-nm { color: var(--chalk); font-weight: 600; }
+.chain-chip-lead {
+  background: color-mix(in srgb, #3E8BD8 14%, var(--card-bg));
+  border-color: color-mix(in srgb, #3E8BD8 45%, transparent);
+}
+.chain-chip-warn {
+  background: color-mix(in srgb, var(--marigold) 12%, var(--card-bg));
+  border-color: color-mix(in srgb, var(--marigold) 40%, transparent);
+}
+.chain-chip-warn .chain-chip-nm { color: color-mix(in srgb, var(--marigold) 70%, var(--chalk)); }
+.chain-chip.on,
+.chain-chip:focus-visible {
+  box-shadow: 0 0 0 1.5px var(--highlight, #4E9BE0);
+}
+.chain-chip-nm {
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.chain-chip-cnt, .chain-chip-tm {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--chalk) 55%, transparent);
+  flex-shrink: 0;
+}
+.chain-chip-wi {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--marigold);
+  flex-shrink: 0;
+}
+.chain-chip-av {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+.chain-chip-av .avatar-sm,
+.chain-chip-av .avatar-stack { width: 16px; height: 16px; }
+.chain-dep-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: color-mix(in srgb, var(--marigold) 10%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--marigold) 28%, transparent);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--marigold) 55%, var(--chalk));
+  line-height: 1.4;
+}
+.chain-dep-alert b { color: color-mix(in srgb, var(--marigold) 40%, var(--chalk)); font-weight: 650; }
+.chain-dep-alert-ico {
+  flex-shrink: 0;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--marigold) 30%, transparent);
+  color: var(--marigold);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+/* minimal preview: title + the viewer's own RSVP as a single badge */
+.ticket-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ticket-top h5 { flex: 1; min-width: 0; }
+.ticket-choice {
+  flex-shrink: 0;
+  position: relative;
+  width: auto;
+  height: auto;
+  padding: 2px;
+  margin-right: -1px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--sage);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+button.ticket-choice {
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.ticket-choice-interactive:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--marigold, #d9a441) 70%, transparent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.ticket-choice-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--moss, #d5d8dc);
+  background: var(--card-bg, #fff);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--chalk, #1a1a1a) 14%, transparent);
+}
+.ticket-choice-menu .rsvp-opt {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1.5px solid var(--moss, #d5d8dc);
+  background: var(--card-bg, #fff);
+  color: var(--sage);
+  cursor: pointer;
+}
+.ticket-choice-menu .rsvp-opt .ico {
+  width: 14px;
+  height: 14px;
+}
+.ticket-choice-menu .rsvp-opt.going { border-color: #5a9e5e; color: #39733d; }
+.ticket-choice-menu .rsvp-opt.maybe { border-color: #c9a04a; color: #8a6a1e; }
+.ticket-choice-menu .rsvp-opt.out { border-color: var(--ember); color: var(--ember); }
+.ticket-choice-menu .rsvp-opt.going.on {
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  border-color: var(--success);
+  color: var(--success);
+}
+.ticket-choice-menu .rsvp-opt.maybe.on {
+  background: #fff6dc;
+  border-color: #c9a04a;
+  color: #70530f;
+}
+.ticket-choice-menu .rsvp-opt.out.on {
+  background: var(--danger-wash);
+  border-color: var(--ember);
+  color: var(--ember);
+}
+.ticket-choice .ico {
+  width: 16px;
+  height: 16px;
+  overflow: visible;
+}
+.ticket-choice.on-going {
+  background: transparent;
+  border: 0;
+  color: #5a9e5e;
+}
+.ticket-choice.on-maybe {
+  background: transparent;
+  border: 0;
+  color: #c9a04a;
+}
+.ticket-choice.on-out {
+  background: transparent;
+  border: 0;
+  color: var(--ember);
+  width: auto;
+  height: auto;
+  padding: 2px 0;
+}
+.ticket-choice.needs-reply,
+.ticket-choice.needs-approval {
+  width: auto;
+  height: auto;
+  min-height: 22px;
+  padding: 3px 8px;
+  margin-right: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--highlight, var(--marigold));
+  background: var(--highlight-tint, var(--tint-accent));
+  color: var(--highlight-dim, var(--marigold-dim));
+}
+.ticket-choice.needs-reply .ico {
+  width: 14px;
+  height: 14px;
+}
+.ticket-choice-tag {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.ticket-choice.needs-reply .ticket-choice-tag,
+.ticket-choice.needs-approval .ticket-choice-tag {
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ticket-choice.on-blocked {
+  width: auto;
+  height: auto;
+  min-height: 22px;
+  padding: 3px 8px;
+  margin-right: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ember, #c45c26);
+  border: 0;
+}
+.ticket-choice.on-blocked .ticket-choice-tag {
+  color: inherit;
+}
+.ticket-choice.on-out .ticket-choice-tag {
+  color: var(--ember);
+}
+.event-people-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-width: 0;
+}
+.event-host-summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--bottle-2);
+  border: 1px solid var(--moss);
+  line-height: 0;
+}
+.event-host-summary .avatar-stack { display: inline-flex; flex-shrink: 0; }
+.event-host-summary .avatar-sm {
+  width: 22px;
+  height: 22px;
+  font-size: 10px;
+  margin: 0;
+}
+.event-host-empty {
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.85;
+}
+.event-host-empty .avatar-empty {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  border: 1.5px dashed color-mix(in srgb, var(--sage) 75%, transparent);
+  background: color-mix(in srgb, var(--moss) 35%, transparent);
+}
+.event-going-summary {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+@keyframes rxSuck {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* small overlapping face stack used wherever RSVPs are shown */
+.avatar-stack { display: flex; }
+.avatar-sm {
+  position: relative;
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  margin-left: -8px;
+  border: 2px solid var(--bottle);
+  display: grid; place-items: center;
+  font-size: 10.5px; font-weight: 700;
+  color: var(--on-accent);
+  flex-shrink: 0;
+}
+.avatar-stack .avatar-sm:first-child { margin-left: 0; }
+.avatar-sm.avatar-more { background: var(--bottle-2); color: var(--sage); }
+.avatar-rx {
+  position: absolute;
+  left: -3px; top: -3px;
+  right: auto;
+  width: 11px; height: 11px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+  color: var(--chalk); /* don't inherit photo-avatar color tricks */
+}
+.avatar-rx .rx-drawn {
+  width: 10px;
+  height: 10px;
+  filter: drop-shadow(-0.5px -0.5px 0 var(--bottle))
+          drop-shadow(0.5px -0.5px 0 var(--bottle))
+          drop-shadow(-0.5px 0.5px 0 var(--bottle))
+          drop-shadow(0.5px 0.5px 0 var(--bottle));
+}
+.avatar-rx-n {
+  position: absolute;
+  left: -4px; top: -2px;
+  right: auto;
+  margin: 0;
+  font-size: 5.5px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--chalk);
+  font-family: var(--mono);
+  letter-spacing: -0.04em;
+  text-shadow:
+    -1px -1px 0 var(--bottle),
+     1px -1px 0 var(--bottle),
+    -1px  1px 0 var(--bottle),
+     1px  1px 0 var(--bottle);
+}
+/* Chat sent — bottom-left on faces (reaction occupies top-left). */
+.avatar-chat {
+  position: absolute;
+  left: -3px;
+  bottom: -3px;
+  right: auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bottle);
+  color: var(--ui-accent, #4e9be0);
+  border: 1.5px solid var(--bottle);
+  line-height: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.avatar-chat .ico {
+  width: 8px;
+  height: 8px;
+}
+.avatar-chat.is-unread {
+  background: color-mix(in srgb, var(--ui-accent, #4e9be0) 22%, var(--bottle));
+  color: var(--ui-accent, #4e9be0);
+  border-color: var(--ui-accent, #4e9be0);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-accent, #4e9be0) 35%, transparent);
+}
+
+/* full event page */
+.event-detail { max-width: 620px; }
+.edge-kv-meter {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted, #8a8680);
+  padding: 0 4px 8px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.edge-kv-meter.warn {
+  color: var(--ember, #c45c26);
+  font-weight: 600;
+}
+/* One surface: card region (chat lives in the right sidebar). */
+/* Card / RSVP / alts scroll inside the surface when content is tall. */
+
+/* Signups bottom sheet — collapsed peek; drag up for Going/Maybe/Can't. */
+/* When expanded, keep the handle; summary lives in the body list. */
+
+/* ---- Directional action stage (card over four rails) ---- */
+/* Dismiss: hide immediately so rails don't flash at the reset edge while the card recenters. */
+/* Rails track the live card edge (shift + scale vars synced from JS). */
+/* Alt carousel: real hero is slide 0; neighbors peek when spread. */
+/* Original glow only when alternative suggestions exist. */
+/* Tucked: only the real original shows; other slides wait off to the right. */
+/* Spread: active centered; prev/next edges peek to hint swipe. */
+/* Alt / create slides: 80% face + chrome above/below. */
+.edc-alt-slide-chrome {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 4px 0;
+  pointer-events: none;
+}
+.edc-alt-slide-summary,
+.edc-alt-slide-chrome > .edc-suggest-draft-hint {
+  flex: 0 0 auto;
+  margin: 0;
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: color-mix(in srgb, var(--chalk) 72%, transparent);
+  background: transparent;
+  border: 0;
+  padding: 2px 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.edc-alt-slide-chrome > .edc-suggest-draft-hint {
+  cursor: default;
+  color: color-mix(in srgb, var(--chalk) 55%, transparent);
+}
+/* Shared size for every non-original face (alts + create). */
+.edc-alt-slide-vote {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.edc-suggest-create-btn {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  color: var(--card-bg, #fff);
+  background: var(--ui-accent, var(--marigold, #d9a441));
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+.edc-suggest-create-btn:active {
+  filter: brightness(0.95);
+}
+/* Carousel browse: only the stack (swipe) + meta votes; block rail/reply steal. */
+.edc-suggest-draft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  pointer-events: auto;
+}
+.edc-suggest-draft-hint {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--chalk) 72%, transparent);
+  text-align: center;
+  white-space: nowrap;
+}
+.edc-suggest-draft-card {
+  transform: scale(0.52);
+  transform-origin: center center;
+  width: max-content;
+  max-width: none;
+  pointer-events: auto;
+}
+
+/* Directional chevrons — natural affordance for shifting the card */
+/* Top/bottom sit in the stage gutters; left/right hug the card edges. */
+
+/* Size the RSVP rail to its buttons so taps stay reliable; card stays centered. */
+.event-card-popup-rsvp {
+  grid-column: 1;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 76px;
+  margin: 0;
+  min-width: 76px;
+  z-index: 2;
+}
+.event-card-popup-rsvp.event-rsvp-row {
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  margin-top: 0;
+  gap: 8px;
+}
+.event-card-popup-rsvp .rsvp-btn {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 6px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.event-card-popup-rsvp .rsvp-btn span {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+.event-card-popup-rsvp .rsvp-btn .ico {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+/* Organise actions — icon-only chips (now live in the bottom reveal rail). */
+/* Note / chat — right gutter; card stays centered in the middle column. */
+/* Detail popup card — larger face; notifs sit in the side gutter. */
+/* Carousel alt/create faces: fill shared 80% box (override fixed 210×294). */
+/* Alt stack behind the detail hero — same box as the card so peeks don't shift it. */
+/* Photo/color come from inline avatarStyle — don't let the category-gem fill win. */
+/* While typing, tuck the hand so the IME + composer don't bury the surface. */
+
+/* Dismiss cross — anchored to the sheet/modal it closes, not the screen. */
+.card-share-sheet .modal-card,
+.event-pass-send .modal-card { position: relative; }
+.modal-card-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--chalk) 6%, transparent);
+  color: var(--sage);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color .18s ease, background .18s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .modal-card-close:hover {
+    color: var(--chalk);
+    background: color-mix(in srgb, var(--chalk) 12%, transparent);
+  }
+}
+
+.modal-card-close .ico {
+  width: 18px;
+  height: 18px;
+}
+/* § event cloning — small provenance line above RSVPs on a clone's detail. */
+.edc-desc-section{
+  padding: 10px 4px 14px;
+}
+.edc-desc-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.edc-desc-sub {
+  margin: 0 0 10px;
+  font-size: 12px;
+  opacity: .65;
+}
+.edc-desc-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 88px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--chalk, #111) 18%, transparent);
+  background: color-mix(in srgb, var(--card-bg, #fff) 92%, #000);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.edc-desc-body {
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+.edc-desc-save {
+  margin-top: 8px;
+  border: 1.5px solid color-mix(in srgb, var(--marigold) 55%, var(--moss));
+  border-radius: 9px;
+  padding: 9px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--tint-accent);
+  color: var(--marigold-dim);
+}
+.edc-desc-save:active {
+  background: color-mix(in srgb, var(--marigold) 14%, var(--tint-accent));
+  border-color: var(--marigold);
+}
+/* Event feed composer: drop the filled grey tray; keep a light input pill */
+.panel-event-feed .edc-comp,
+.event-detail-chat-sheet.is-open .edc-comp {
+  background: transparent;
+  border-top: none;
+}
+.panel-event-feed .edc-compbar,
+.event-detail-chat-sheet.is-open .edc-compbar {
+  background: color-mix(in srgb, var(--card-bg, #fff) 88%, transparent);
+  border-color: color-mix(in srgb, var(--moss) 55%, transparent);
+}
+.panel-event-feed.tab-description .edc-comp,
+.event-detail-chat-sheet.tab-description .edc-comp {
+  padding-top: 4px;
+}
+/* Chain follow-ons inside the detail popup — drop the timeline's stub indent. */
+/* Share toolbar relocated top-left of the sheet as compact icon buttons. */
+.event-head {
+  padding: 18px;
+  border: 1px solid var(--moss);
+  border-radius: 16px;
+  background: var(--card-bg);
+}
+/* Detail note control lives in the description header (.event-card-popup-note), not on the card. */
+/* Empty subtitle/date prompts only when the card is editable. */
+/* Filled subtitle/date: solid chip outline so they read as editable.
+   Dashed outlines are reserved for unset (.off) slots only. */
+.event-head h4 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 8px 0 3px; }
+.event-head .event-host-summary { margin: 8px 0 4px; }
+.share-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--marigold-dim);
+  border: 1px solid var(--marigold);
+  border-radius: 99px;
+  padding: 6px 12px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .share-btn:hover { background: var(--tint-accent); }
+}
+
+.share-btn:disabled { opacity: .6; pointer-events: none; }
+
+/* Pulsing "this event/pitch is broadcasting" indicator.
+   LAN = green; public (Cloudflare) = accent blue. */
+.live-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: 0.05em;
+  flex-shrink: 0;
+  animation: live-pulse 1.4s ease-in-out infinite;
+  box-shadow: 0 0 0 0 currentColor;
+}
+.live-dot.live-lan {
+  background: var(--success);
+  color: var(--success);
+}
+.live-dot.live-public {
+  background: var(--marigold);
+  color: var(--marigold);
+}
+.live-dot-lg { width: 10px; height: 10px; margin-right: 0; }
+.ticket-top h5 .live-dot,
+.event-head h4 .live-dot { margin-right: 8px; }
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
+  50% { opacity: .55; transform: scale(1.15); box-shadow: 0 0 0 6px transparent; }
+}
+
+.live-wrap { padding-bottom: 24px; }
+.live-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.live-stop-all {
+  flex-shrink: 0;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--ember);
+  border: 1px solid color-mix(in srgb, var(--ember) 55%, transparent);
+  border-radius: 99px;
+  padding: 6px 12px;
+  background: transparent;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .live-stop-all:hover { background: color-mix(in srgb, var(--ember) 12%, transparent); }
+}
+
+.live-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--moss);
+  border-radius: 12px;
+  background: var(--card-bg);
+  margin: 0 0 10px;
+}
+.live-item-main {
+  flex: 1; min-width: 0;
+  text-align: left;
+  background: transparent; border: 0; padding: 0;
+  color: inherit; cursor: pointer;
+}
+.live-item-title {
+  font-size: 15px; font-weight: 800; letter-spacing: -0.01em;
+  color: var(--chalk);
+}
+.live-item-meta {
+  font-size: 12.5px; color: var(--sage); margin-top: 2px;
+}
+.live-stop-btn {
+  flex-shrink: 0;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--ember);
+  border: 1px solid color-mix(in srgb, var(--ember) 55%, transparent);
+  border-radius: 99px;
+  padding: 6px 12px;
+  background: transparent;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .live-stop-btn:hover { background: color-mix(in srgb, var(--ember) 12%, transparent); }
+}
+
+.event-rsvp-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
+.event-rsvp-row .rsvp-btn {
+  min-width: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 10px 11px;
+  border-width: 1.5px;
+  border-radius: 11px;
+  background: var(--card-bg);
+  color: var(--sage);
+}
+.event-rsvp-row .rsvp-btn span { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.event-rsvp-row .rsvp-btn strong {
+  min-width: 22px; height: 22px; padding: 0 6px;
+  display: grid; place-items: center;
+  border-radius: 99px; background: var(--bottle-2);
+  font-size: 11px;
+}
+.event-rsvp-row .rsvp-btn.going { border-color: #5a9e5e; color: #39733d; }
+.event-rsvp-row .rsvp-btn.maybe { border-color: #c9a04a; color: #8a6a1e; }
+.event-rsvp-row .rsvp-btn.out { border-color: var(--ember); color: var(--ember); }
+.event-rsvp-row .rsvp-btn.going.on { background: color-mix(in srgb, var(--success) 14%, transparent); border-color: var(--success); color: var(--success); }
+.event-rsvp-row .rsvp-btn.maybe.on { background: #fff6dc; border-color: #c9a04a; color: #70530f; }
+.event-rsvp-row .rsvp-btn.out.on { background: var(--danger-wash); border-color: var(--ember); color: var(--ember); }
+.event-rsvp-group { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--sage); }
+.event-rsvp-group:first-child { margin-top: 0; }
+.event-rsvp-group b { color: var(--chalk); font-weight: 600; min-width: 0; }
+.event-rsvp-people { margin-top: 8px; }
+/* Attendance faces — unread chat badge matches timeline (icon only, no pill). */
+.event-rsvp-people .avatar-chat {
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--chalk);
+}
+.event-rsvp-people .avatar-chat .ico {
+  width: 9px;
+  height: 9px;
+  filter: none;
+}
+.event-rsvp-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin: 18px 0 4px;
+  color: var(--sage);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.event-rsvp-group-head b {
+  color: var(--chalk);
+  font-weight: 650;
+}
+.event-rsvp-group.is-list {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0;
+}
+.event-rsvp-group.is-list:first-child .event-rsvp-group-head { margin-top: 8px; }
+.event-rsvp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.event-rsvp-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--moss) 55%, transparent);
+}
+.event-rsvp-list .event-rsvp-person:last-child { border-bottom: 0; }
+.event-rsvp-person .avatar-stack,
+.event-rsvp-person .avatar-sm {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+}
+.event-rsvp-person .avatar-sm { margin-left: 0; }
+.event-rsvp-person-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.event-rsvp-person-name {
+  color: var(--chalk);
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.event-rsvp-person-added {
+  color: var(--sage);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.event-rsvp-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sage);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0.55;
+}
+.event-rsvp-remove:focus-visible {
+  opacity: 1;
+  color: var(--ember);
+  background: var(--danger-wash, color-mix(in srgb, var(--ember) 12%, transparent));
+}
+@media (hover: hover) and (pointer: fine) {
+  .event-rsvp-remove:hover {
+    opacity: 1;
+    color: var(--ember);
+    background: var(--danger-wash, color-mix(in srgb, var(--ember) 12%, transparent));
+  }
+}
+
+.event-rsvp-remove svg { width: 14px; height: 14px; }
+.event-rsvp-confirm {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--periwinkle-base, #6d7cff);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.event-group-pick {
+  flex-shrink: 0;
+  max-width: 42%;
+  min-height: 28px;
+  border: 1px solid var(--moss);
+  border-radius: 8px;
+  background: var(--card-bg, var(--surface-1));
+  color: var(--chalk);
+  font: inherit;
+  font-size: 11px;
+}
+.event-signup-tools {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+.event-signup-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 0;
+}
+.event-signup-switch button {
+  margin: 0;
+  padding: 5px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--sage);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.event-signup-switch button.on,
+.event-signup-switch button[aria-selected="true"] {
+  color: var(--chalk);
+  border-bottom-color: var(--chalk);
+}
+.event-signup-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.event-signup-add-group,
+.event-signup-done {
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--sage);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.event-signup-more {
+  margin: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sage);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.event-signup-more .ico { width: 16px; height: 16px; }
+.event-rsvp-declined {
+  margin-top: 16px;
+  color: var(--sage);
+}
+.event-rsvp-declined summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--sage);
+  list-style: none;
+}
+.event-rsvp-declined summary::-webkit-details-marker { display: none; }
+.event-signup-buckets {
+  margin-top: 4px;
+  padding-top: 0;
+  border-top: 0;
+}
+.event-signup-group-menu {
+  margin: 0 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sage);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.event-signup-group-menu .ico { width: 14px; height: 14px; }
+.event-thread { margin-top: 4px; display: flex; flex-direction: column; gap: 2px; }
+.event-thread .msg { padding: 8px 0; }
+.event-log-entry {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--moss);
+  color: var(--sage);
+  font-size: 12.5px;
+}
+.event-log-icon {
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 7px; background: var(--bottle-2);
+  color: var(--marigold-dim);
+}
+.event-log-icon .ico { width: 14px; height: 14px; }
+.event-log-entry time { margin-left: 7px; font-family: var(--mono); font-size: 10px; color: var(--sage); opacity: .75; }
+.chat-log-entry { margin: 2px 12px 6px; }
+.chat-log-entry .chat-event-link { margin-bottom: 2px; }
+@media (max-width: 390px) {
+  .event-rsvp-row .rsvp-btn { padding: 9px 7px; font-size: 12px; }
+  .event-rsvp-row .rsvp-btn strong { min-width: 20px; padding: 0 5px; }
+}
+
+/* per-date separators running down the timeline, e.g. "Today 27th July" */
+.week-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 16px 2px 8px;
+  font-family: var(--sans);
+  font-size: 12.5px; font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--marigold-dim);
+}
+.week-divider::before, .week-divider::after {
+  content: ""; flex: 1; height: 0;
+  border-top: 1.5px solid var(--moss); opacity: .7;
+}
+.week-divider.week-this { color: var(--ui-accent-dim, var(--day-ink, var(--chalk))); }
+.week-divider.week-next { color: color-mix(in srgb, var(--ui-accent-dim, var(--day-ink, var(--chalk))) 55%, var(--sage)); }
+.week-divider.week-later { color: var(--sage); }
+.week-divider.week-this::before,
+.week-divider.week-this::after { border-top-color: var(--ui-accent, var(--day-ink, var(--chalk))); opacity: .55; }
+.week-divider.week-next::before,
+.week-divider.week-next::after { border-top-color: var(--ui-accent, var(--day-ink, var(--chalk))); opacity: .28; }
+.week-divider.is-today {
+  color: var(--ui-accent, var(--day-ink, var(--chalk)));
+  font-weight: 800;
+}
+.week-divider.is-today::before,
+.week-divider.is-today::after {
+  border-top: 2.5px solid var(--marigold);
+  opacity: 1;
+}
+/* past days/weeks are scroll-back context only — dimmed and not flickable */
+
+/* 022 — non-interactive phone-calendar ghost rows */
+
+/* § Open availability — recessive context: day-ink wash, time-first, soft corners. */
+.avail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 8px 12px 8px 12px;
+  border: 1.5px dashed color-mix(in srgb, var(--day-ink, var(--chalk)) 34%, transparent);
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--chalk);
+  background: transparent;
+  box-shadow: none;
+}
+.avail-row:focus-visible {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--day-ink, var(--chalk)) 52%, transparent);
+  outline: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .avail-row:hover {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--day-ink, var(--chalk)) 52%, transparent);
+    outline: none;
+  }
+}
+
+.avail-where {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: color-mix(in srgb, var(--sage) 85%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Time blocks — same recessive row DNA as Open availability. */
+.time-block-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--chalk);
+  background: color-mix(in srgb, var(--day-ink, var(--chalk)) 8%, var(--card-bg, #fff));
+  box-shadow: none;
+}
+.time-block-row:focus-visible {
+  background: color-mix(in srgb, var(--day-ink, var(--chalk)) 13%, var(--card-bg, #fff));
+  outline: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .time-block-row:hover {
+    background: color-mix(in srgb, var(--day-ink, var(--chalk)) 13%, var(--card-bg, #fff));
+    outline: none;
+  }
+}
+
+.time-block-when {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: var(--day-ink, var(--chalk));
+}
+.time-block-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--sage);
+}
+.time-block-where {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: color-mix(in srgb, var(--sage) 85%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-datetime-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.tb-date-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tb-date-face {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 12px 40px 12px 14px;
+  pointer-events: none;
+  color: var(--chalk);
+  font: inherit;
+}
+.tb-datetime-row input[type="date"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: transparent;
+}
+.tb-datetime-row input[type="date"]::-webkit-datetime-edit,
+.tb-datetime-row input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.tb-datetime-row input[type="date"]::-webkit-datetime-edit-text,
+.tb-datetime-row input[type="date"]::-webkit-datetime-edit-month-field,
+.tb-datetime-row input[type="date"]::-webkit-datetime-edit-day-field,
+.tb-datetime-row input[type="date"]::-webkit-datetime-edit-year-field {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.tb-datetime-row input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+}
+.tb-datetime-row .time-field-btn {
+  flex: 0 0 auto;
+  min-width: 7.2em;
+}
+.time-block-composer-modal .field-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 6px;
+}
+.avail-faces {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.avail-faces .avatar-stack {
+  display: flex;
+  align-items: center;
+  transform: none;
+}
+.avail-faces .avatar-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  margin-left: -8px;
+  border: 2px solid var(--bottle);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--on-accent);
+  box-shadow: none;
+}
+.avail-faces .avatar-stack .avatar-sm:first-child {
+  margin-left: 0;
+}
+.avail-faces .avatar-sm.avatar-more {
+  background: var(--bottle-2);
+  color: var(--sage);
+  box-shadow: none;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.avail-sheet-meta {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--chalk);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.avail-sheet-k {
+  display: inline-block;
+  min-width: 3.4em;
+  margin-right: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+.avail-sheet-create {
+  display: block;
+  width: 100%;
+  margin: 14px 0 0;
+  box-sizing: border-box;
+}
+
+.tb-sheet-signups {
+  margin: 12px 0 0;
+}
+.tb-signup-people {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.tb-signup-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--chalk);
+}
+.tb-signup-person .avatar-stack,
+.tb-signup-person .avatar-sm {
+  flex: 0 0 auto;
+}
+.tb-signup-person .avatar-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.tb-signup-empty {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--sage);
+}
+
+/* Plan-something popout — form lives in a modal, not the timeline. */
+.modal-card .save {
+  background: var(--ui-tint, var(--tint-accent));
+  color: var(--ui-accent-dim, var(--day-ink, var(--chalk)));
+  border: 1.5px solid color-mix(in srgb, var(--ui-accent, var(--day-ink, var(--chalk))) 55%, var(--moss));
+  font-weight: 700; border-radius: 9px; padding: 9px 16px;
+}
+.modal-card .save:active {
+  background: color-mix(in srgb, var(--ui-accent, var(--day-ink)) 14%, var(--ui-tint, var(--tint-accent)));
+  border-color: var(--ui-accent, var(--day-ink));
+}
+.modal-card .cancel { color: var(--sage); padding: 9px 12px; }
+
+/* Event-detail React picker (right-rail button) */
+
+/* —— Reaction stage —— */
+
+/* Floor-plan layout: 55-react-stage-layout.css — theme paint: styles/react-art/*.css */
+
+/* Mini hand react card (same face as tray / fly-in). */
+
+/* Detail popup uses the canonical event-card ratio; timeline minis are separate. */
+
+/* Editable detail fields read as buttons. This is deliberately scoped to the
+   live detail face; create, routine, share and timeline cards stay unchanged. */

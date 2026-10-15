@@ -1,0 +1,4 @@
+/* Minimal CSS fixture for server asset tests (A-05 MIME check).
+ * Not a canonical copy — the real components live in phlip-web/public/styles/.
+ * Only content needed: a valid CSS file served from a nested path. */
+:root { --test: 1; }

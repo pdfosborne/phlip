@@ -1,0 +1,5005 @@
+/* Board conversations list — raised General + event cards.
+ *
+ * Map of this file (search for the quoted text):
+ *   Conversations list, event threads, place editor, polls ... top of file
+ *   Board chat base: nav row, message runs, event cards ...... ".board-nav-row {"
+ *   Board composer and inline destination ..................... "Inline destination:"
+ *   Chat interaction redesign (Oct 2026), in this order ....... "Chat interaction redesign"
+ *     jump to latest · from-chat draft · selection block · filtered-event
+ *     header · event bar · event list · stepper · focus fade
+ *   #Event label on the name line ............................. "Event label on a message's name line"
+ *   Event card as a message from its creator .................. "Event card as a message from its creator"
+ *   Chains and quick continue ................................. "Chain ends:"
+ *   Event list as the compact view ............................ "Event list as the compact view."
+ *   RSVP states, card rows, # picker badges ................... "Three RSVP states"
+ *
+ * Event colour: there is none. Periwinkle (--accent) means focus only. Later
+ * sections refine earlier ones at the same specificity, so keep new rules in
+ * their section rather than appending overrides at the end. */
+
+.conversations-view-mode {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: var(--surface-0, #FCFCFD);
+}
+
+.conv-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* Same as .events-scroll / .chat-scroll: keep native vertical scroll, but
+     let LTR swipes reach attachMainNavSheetSwipe instead of the browser
+     cancelling them as a button/action pan. */
+  touch-action: pan-y;
+  background: var(--surface-0, #FCFCFD);
+}
+
+.conv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 88px;
+  padding: 14px;
+  border: 1px solid var(--border, #E5E4E9);
+  border-radius: 15px;
+  background: var(--surface-2, #FFFFFF);
+  box-shadow: var(--shadow-float);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  touch-action: pan-y;
+  box-sizing: border-box;
+}
+
+.conv-row:active,
+.conv-row.is-pressed {
+  background: color-mix(in srgb, var(--text-primary, #1c1c1a) 5%, var(--surface-2, #fff));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conv-row:hover {
+    background: color-mix(in srgb, var(--text-primary, #1c1c1a) 3%, var(--surface-2, #fff));
+  }
+  .conv-row.is-picker.is-selected:hover {
+    background: var(--periwinkle-tint, rgba(115, 113, 247, 0.22));
+  }
+}
+
+.conv-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.conv-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 22px;
+}
+
+.conv-ico {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  background: none;
+  color: var(--text-muted, var(--sage));
+}
+
+.conv-ico .ico,
+.conv-ico .ico-inline {
+  width: 24px;
+  height: 24px;
+}
+
+.conv-row.is-all-chat .conv-ico {
+  background: none;
+  color: var(--text-muted);
+}
+
+.conv-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.conv-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-body-sm, 15px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.conv-event-when {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--text-secondary, #6b6a63);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.conv-when-flags {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conv-row.is-picker.is-selected {
+  background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+}
+
+.conv-row.is-picker.is-selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--periwinkle-base, #7371f7);
+}
+
+.conv-yours,
+.conv-going,
+.conv-signed-up,
+.conv-needs-rsvp {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.conv-going,
+.conv-signed-up {
+  font-size: var(--fs-caption, 11px);
+  font-weight: var(--fw-regular, 400);
+  color: var(--text-primary);
+}
+
+.conv-yours {
+  font-size: var(--fs-caption, 11px);
+  font-weight: var(--fw-bold, 700);
+  color: var(--text-primary);
+}
+
+.conv-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.conv-preview {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-size: var(--fs-body-sm, 13px);
+  color: var(--text-secondary);
+}
+
+.conv-row.is-declined .conv-title,
+.conv-row.is-declined .conv-ico,
+.conv-row.is-declined .conv-preview,
+.conv-row.is-declined .conv-event-when {
+  color: var(--text-muted, var(--sage));
+  opacity: 0.62;
+  font-weight: 400;
+}
+
+.conv-needs-rsvp {
+  font-size: var(--fs-caption, 11px);
+  font-weight: var(--fw-bold, 700);
+  color: var(--accent, var(--periwinkle-base));
+}
+
+body.tl-creating .conversations-view-mode .conv-scroll {
+  pointer-events: none;
+}
+
+.conversations-view-mode:has(#tl-sheet-host.open) .conv-scroll {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.conversations-view-mode:has(#tl-sheet-host.open) .tl-create-fab {
+  display: none;
+}
+
+.conv-event-thread {
+  position: relative;
+  touch-action: pan-y;
+}
+
+.conv-event-more {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.conv-event-more .ico {
+  width: 18px;
+  height: 18px;
+}
+
+.conv-event-tabs {
+  display: flex;
+  gap: 0;
+  width: min(100%, var(--content-max, 620px));
+  margin: 0 auto;
+  padding: 0 var(--gutter, 12px);
+}
+
+.conv-event-tab-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.conv-event-tabs button {
+  flex: 1;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.conv-event-tabs button.on,
+.conv-event-tabs button[aria-selected="true"] {
+  color: var(--text-primary);
+  border-bottom-color: var(--ui-accent, var(--day-ink, var(--chalk)));
+}
+
+.conv-event-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  width: min(100%, var(--content-max, 620px));
+  margin: 0 auto;
+  padding: var(--space-12, 12px) var(--gutter, 12px) calc(24px + var(--safe-bottom, 0px));
+}
+
+.conv-event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.conv-event-facts {
+  display: flex;
+  flex-direction: column;
+}
+
+.conv-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border, var(--moss));
+}
+
+.conv-event-row-ico {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  color: var(--text-muted, var(--sage));
+}
+
+.conv-event-row-ico .ico {
+  width: 16px;
+  height: 16px;
+}
+
+.conv-event-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-body-sm, 15px);
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.conv-event-row-trail {
+  flex: 0 1 auto;
+  max-width: 52%;
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-secondary, var(--sage));
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-event-row-trail.is-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  line-height: 1.15;
+}
+
+.conv-event-row-trail.is-stack strong {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.conv-event-row-trail.is-stack em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, var(--sage));
+}
+
+.conv-event-row-trail.is-link {
+  color: var(--periwinkle-text, #322a85);
+  text-decoration: none;
+}
+
+button.conv-event-row-trail.is-link {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0 0 0 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.conv-event-notes {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.conv-event-notes-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.conv-event-notes-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.conv-event-editability {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.conv-event-notes-edit,
+.conv-event-notes-add {
+  border: 0;
+  background: transparent;
+  color: var(--periwinkle-text, #322a85);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  padding: 0;
+}
+
+.conv-event-notes-edit.conv-event-row-edit {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--text-primary);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  color: var(--text-primary);
+  font-size: 0;
+}
+
+.conv-event-notes-edit.conv-event-row-edit .ico {
+  width: 14px;
+  height: 14px;
+}
+
+.conv-event-origin {
+  border: 1px solid var(--border, var(--moss));
+  border-radius: 12px;
+  background: var(--surface-2, var(--card-bg, #fff));
+}
+
+.conv-event-origin > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--text-primary);
+}
+
+.conv-event-origin > summary::-webkit-details-marker {
+  display: none;
+}
+
+.conv-event-origin-ico,
+.conv-event-origin-chev {
+  display: inline-flex;
+  color: var(--text-muted, var(--sage));
+}
+
+.conv-event-origin-ico .ico,
+.conv-event-origin-chev .ico {
+  width: 16px;
+  height: 16px;
+}
+
+.conv-event-origin-chev {
+  margin-left: auto;
+}
+
+.conv-event-origin[open] .conv-event-origin-chev {
+  transform: rotate(180deg);
+}
+
+.conv-event-origin-body {
+  margin: 0;
+  padding: 0 12px 12px 40px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary, var(--chalk));
+}
+
+.conv-event-power {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 4px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border, var(--moss));
+}
+
+.conv-event-text-sheet textarea {
+  width: 100%;
+  min-height: 180px;
+  margin: 8px 0 12px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.conv-event-nonchat > #chat-scroll,
+.conv-event-nonchat > .composer,
+.conv-event-nonchat > .chat-card-rail,
+.conv-event-nonchat > .chat-filter-bar,
+.conv-event-nonchat > .chat-mirror-bar,
+.conv-event-nonchat > .chat-event-toolbar {
+  display: none;
+}
+
+.conv-event-thread,
+.conv-event-thread button,
+.conv-event-thread a {
+  touch-action: pan-y;
+}
+
+.chat-feed-scope {
+  position: relative;
+  z-index: 8;
+  flex: 0 0 auto;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border, var(--moss));
+}
+
+.chat-feed-head {
+  position: relative;
+  width: min(100%, var(--content-max, 620px));
+  margin: 0 auto;
+}
+
+.chat-feed-picker-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 8px var(--gutter, 12px) 4px;
+}
+
+.chat-feed-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chat-feed-select:focus-visible {
+  outline: 2px solid var(--ui-accent, var(--day-ink, var(--chalk)));
+  outline-offset: 2px;
+}
+.chat-feed-rsvp:focus-visible,
+.chat-feed-rsvp-decline:focus-visible {
+  outline: 2px solid var(--ui-accent, var(--day-ink, var(--chalk)));
+  outline-offset: 2px;
+}
+
+.chat-feed-select-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--fs-heading, 18px);
+  font-weight: var(--fw-bold, 700);
+  color: var(--text-primary, var(--chalk));
+  line-height: 1.2;
+}
+
+.chat-feed-select-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-feed-select-caret {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--text-muted, var(--sage));
+  transition: transform 160ms ease;
+}
+
+.chat-feed-select-caret .ico {
+  width: 14px;
+  height: 14px;
+}
+
+.chat-feed-select[aria-expanded="true"] .chat-feed-select-caret {
+  transform: rotate(180deg);
+}
+
+.chat-feed-select-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  min-width: 0;
+  padding: 0 var(--gutter, 12px) 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-secondary, var(--chalk));
+  line-height: 1.3;
+}
+.chat-feed-sub-sep {
+  flex: 0 0 auto;
+}
+.chat-feed-sub-time {
+  flex: 0 0 auto;
+}
+.chat-feed-sub-date {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-feed-sub-place {
+  flex: 0 2 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-feed-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.chat-feed-rsvp-decline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted, var(--sage));
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chat-feed-rsvp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--periwinkle-base, #7371f7);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+}
+.chat-feed-rsvp-label {
+  white-space: nowrap;
+}
+.chat-feed-rsvp .ico {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+}
+.chat-feed-rsvp.is-on {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 36px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--periwinkle-text, #322a85);
+}
+
+.chat-feed-picker-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: rgba(28, 28, 26, 0.08);
+  cursor: pointer;
+}
+
+.chat-feed-picker-scrim[hidden] {
+  display: none;
+}
+
+.chat-feed-picker-layer {
+  display: none;
+}
+
+.chat-feed-picker-layer:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: var(--gutter, 12px);
+  right: var(--gutter, 12px);
+  top: 100%;
+  z-index: 9;
+  width: auto;
+  max-height: min(70vh, 480px);
+  overflow: hidden;
+  background: var(--paper, #fff);
+  border: 1.5px solid var(--border, var(--moss));
+  border-radius: var(--radius-sm, 8px);
+  box-shadow: 0 10px 28px rgba(28, 28, 26, 0.14);
+}
+
+.chat-feed-picker-search-wrap {
+  flex: 0 0 auto;
+  padding: 8px 10px 0;
+}
+
+.chat-feed-picker-search {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border, var(--moss));
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-2, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+}
+
+.chat-feed-picker-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 12px 16px;
+  background: var(--surface-0, #FCFCFD);
+  box-sizing: border-box;
+}
+
+.chat-feed-picker-empty {
+  margin: 0;
+  padding: 12px;
+}
+
+.chat-event-origin-hint {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  max-width: 100%;
+  margin: 3px 0 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted, var(--sage));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-event-origin-hint::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: 50%;
+  height: 44px;
+  margin-top: -22px;
+}
+
+.chat-event-origin-hint:focus-visible {
+  outline: 2px solid var(--ui-accent, var(--day-ink, var(--chalk)));
+  outline-offset: 2px;
+}
+
+.chat-event-origin-ico,
+.chat-event-origin-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: .72;
+}
+
+.chat-event-origin-ico .ico,
+.chat-event-origin-ico .ico-inline,
+.chat-event-origin-chev .ico,
+.chat-event-origin-chev .ico-inline {
+  width: 12px;
+  height: 12px;
+}
+
+.chat-event-origin-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-event-origin-chev {
+  margin-left: -1px;
+  opacity: .55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chat-feed-select:hover .chat-feed-select-caret {
+    color: var(--text-primary, var(--chalk));
+  }
+  .chat-feed-rsvp:hover {
+    background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+  }
+  .chat-feed-rsvp.is-on:hover {
+    background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+  }
+  .chat-feed-rsvp-decline:hover {
+    color: var(--text-primary, var(--chalk));
+    background: color-mix(in srgb, var(--text-primary, #1c1c1a) 6%, transparent);
+  }
+  .chat-event-origin-hint:hover {
+    color: var(--text-secondary, var(--sage));
+  }
+}
+
+.conv-people-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.conv-people-action {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--sage, var(--text-secondary));
+  font: inherit;
+  font-size: var(--fs-caption, 13px);
+  font-weight: var(--fw-bold, 700);
+  cursor: pointer;
+}
+
+.conv-people-action.on {
+  color: var(--periwinkle-text);
+  border: 1.5px solid var(--periwinkle-border);
+  background: var(--periwinkle-tint-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .conv-people-action:hover {
+    color: var(--chalk);
+    background: var(--bottle-2, var(--surface-3));
+  }
+}
+
+body.float-board .conversations-view-mode,
+body.float-board .conv-scroll,
+body.float-board .polls-view-mode {
+  background: var(--page-bg);
+}
+
+.tl-events-wrap > .conv-page-head {
+  margin-bottom: var(--space-8);
+}
+
+body.tl-creating .conv-page-head [data-board-create] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.chat-move-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 16px calc(16px + var(--safe-bottom, 0px));
+  background: var(--surface-2, var(--paper, #fff));
+  border-top: 1px solid var(--border, var(--moss));
+}
+
+.chat-move-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-move-related {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border, var(--moss));
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--text-primary, var(--chalk));
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chat-move-related.on {
+  border-color: var(--periwinkle-border, #a8a6f5);
+  background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+  color: var(--periwinkle-text, #322a85);
+}
+
+.chat-move-count {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-secondary, var(--sage));
+}
+
+.chat-move-cancel,
+.chat-move-confirm {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm, 8px);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chat-move-cancel {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, var(--sage));
+}
+
+.chat-move-confirm {
+  border: 1.5px solid var(--periwinkle-border, #a8a6f5);
+  background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+  color: var(--periwinkle-text, #322a85);
+}
+
+.chat-event-nudge {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0 16px 8px;
+  padding: 0;
+  border: 1px solid var(--periwinkle-border, #a8a6f5);
+  border-radius: 12px;
+  background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+}
+
+.chat-event-nudge-open {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  color: var(--periwinkle-text, #322a85);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-event-nudge-dismiss {
+  flex: 0 0 auto;
+  width: 40px;
+  border: 0;
+  background: none;
+  color: var(--periwinkle-text, #322a85);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: .7;
+}
+
+.chat-event-move {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.chat-event-move-kicker {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, var(--sage));
+}
+.chat-event-move-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.chat-event-move-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.chat-event-move-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: auto;
+  height: auto;
+  background: none;
+  color: var(--text-muted, var(--sage));
+  line-height: 0;
+}
+.chat-event-move-ico .ico,
+.chat-event-move-ico .ico-inline {
+  width: 16px;
+  height: 16px;
+}
+.chat-event-move-title {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--text-primary, var(--chalk));
+}
+.chat-event-move-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-event-move-sep,
+.chat-event-move-date {
+  flex: 0 0 auto;
+  font-weight: 500;
+  color: var(--text-muted, var(--sage));
+}
+.chat-event-move-toggle {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted, var(--sage));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.chat-event-move-toggle .ico,
+.chat-event-move-toggle .ico-inline {
+  width: 16px;
+  height: 16px;
+  transition: transform .16s ease;
+}
+.chat-event-move.is-open .chat-event-move-toggle .ico,
+.chat-event-move.is-open .chat-event-move-toggle .ico-inline {
+  transform: rotate(180deg);
+}
+.chat-event-move-details {
+  margin: 2px 0 0 7px;
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid var(--periwinkle-base, #7371f7);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.chat-event-move-details[hidden] {
+  display: none;
+}
+.chat-event-move-preview {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted, var(--sage));
+}
+.chat-event-move-msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.chat-event-move-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.chat-event-move-msg-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-primary, var(--chalk));
+}
+.chat-event-move-msg-meta time {
+  font-weight: 400;
+  color: var(--text-muted, var(--sage));
+}
+.chat-event-move-msg-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary, var(--sage));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chat-event-move-related {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--text-muted, var(--sage));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.msg.is-move-pick {
+  position: relative;
+  cursor: pointer;
+  border-radius: 12px;
+  margin: 0 -6px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.msg.is-move-on {
+  background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.10));
+}
+
+.chat-move-check {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--border, var(--moss));
+  border-radius: 11px;
+  background: var(--surface-2, #fff);
+  color: var(--periwinkle-text, #322a85);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chat-move-check.on {
+  border-color: var(--periwinkle-border, #a8a6f5);
+  background: var(--periwinkle-tint-soft, rgba(115, 113, 247, 0.16));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chat-move-cancel:hover,
+  .chat-event-nudge-dismiss:hover {
+    opacity: 1;
+    color: var(--text-primary, var(--chalk));
+  }
+  .chat-move-related:hover {
+    border-color: var(--periwinkle-border, #a8a6f5);
+  }
+  .chat-event-move-related:hover {
+    color: var(--text-primary, var(--chalk));
+    text-decoration: underline;
+  }
+  .chat-move-confirm:hover {
+    background: var(--periwinkle-tint, rgba(115, 113, 247, 0.16));
+  }
+  .chat-event-nudge-open:hover,
+  .chat-event-move-main:hover .chat-event-move-name {
+    text-decoration: underline;
+  }
+  .chat-event-move-toggle:hover {
+    color: var(--text-primary, var(--chalk));
+  }
+}
+
+/* Floating board: three header blocks, options panel, Unread/Plans groups. */
+.head-center,
+.board-member-line {
+  display: contents;
+}
+
+.board-title-chev[hidden] {
+  display: none;
+}
+
+body.float-board .main-head {
+  overflow: visible;
+  position: relative;
+  z-index: var(--z-sticky);
+  background: var(--page-bg);
+  border-bottom: 0;
+  gap: var(--space-panel);
+  padding: var(--space-panel);
+  align-items: flex-start;
+  min-height: 0;
+}
+
+body.float-board .main {
+  background: var(--page-bg);
+}
+
+body.float-board .head-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--hit-min);
+  padding: 0 var(--space-8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-float);
+  gap: 0;
+}
+
+body.float-board .head-center.is-trigger {
+  cursor: pointer;
+}
+
+body.float-board .head-center.is-trigger:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+
+body.float-board .head-center h3 {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: var(--fs-body);
+  line-height: var(--lh-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.float-board .head-center .view-link-marks {
+  display: none;
+}
+
+body.float-board .board-member-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  max-width: 100%;
+  min-width: 0;
+}
+
+body.float-board .main-head .sub {
+  flex: 0 1 auto;
+  margin: 0;
+  max-width: 100%;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-tight);
+  color: var(--text-secondary);
+  justify-content: center;
+}
+
+body.float-board .board-title-chev:not([hidden]) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+body.board-options-open .main-head {
+  z-index: var(--z-menu);
+}
+
+body.board-options-open .board-title-chev {
+  transform: rotate(180deg);
+}
+
+body.float-board .board-title-chev .ico {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+
+body.float-board .main-head .head-actions {
+  margin-left: 0;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 900px) {
+  body.float-board .main-head .back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    width: 74px;
+    height: var(--hit-min);
+    border-radius: var(--radius-panel);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
+    color: var(--text-secondary);
+  }
+}
+
+body.float-board .main-head .back.is-menu > .ico {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+  flex: 0 0 var(--icon-xs);
+}
+
+body.float-board .nav-server-icon {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+  border-radius: var(--radius-sm);
+}
+
+body.float-board .nav-server-icon .rail-label {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-none);
+}
+
+body.float-board #channel-info-btn {
+  width: 74px;
+  height: var(--hit-min);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
+}
+
+body.float-board #channel-info-btn.on {
+  color: var(--periwinkle-text);
+  background: var(--periwinkle-tint-soft);
+  border-color: var(--periwinkle-border);
+}
+
+.board-options {
+  position: absolute;
+  z-index: var(--z-menu);
+  left: var(--space-panel);
+  right: var(--space-panel);
+  top: 100%;
+  margin-top: var(--space-4);
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  padding: var(--space-12);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.board-options[hidden] {
+  display: none !important;
+}
+
+.board-opt-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-10);
+  min-height: 0;
+  font-size: var(--fs-body-sm);
+  color: var(--text-primary);
+}
+
+/* My calendar — full-width sheet over the main column, under the top bar. */
+.channel-panel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-panel);
+  background: var(--scrim-menu);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-panel) var(--ease-enter);
+}
+.channel-panel.is-calendar-drawer {
+  position: fixed;
+  top: calc(var(--space-panel) + var(--safe-top, 0px));
+  right: calc(var(--space-panel) + var(--safe-right, 0px));
+  bottom: calc(var(--space-panel) + var(--safe-bottom, 0px));
+  left: auto;
+  width: min(var(--nav-stack-width), calc(100% - var(--space-panel) - var(--space-panel)));
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+  box-shadow: none;
+  transform: translateX(calc(100% + var(--space-panel)));
+  transition: transform var(--dur-panel) var(--ease-enter), box-shadow var(--dur-panel) var(--ease-enter);
+  z-index: var(--z-sheet);
+}
+#app.channel-panel-open .channel-panel.is-calendar-drawer {
+  transform: none;
+  width: min(var(--nav-stack-width), calc(100% - var(--space-panel) - var(--space-panel)));
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-float);
+  z-index: var(--z-sheet);
+  pointer-events: auto;
+}
+@media (max-width: 900px) {
+  .channel-panel.is-calendar-drawer,
+  #app.channel-panel-open .channel-panel.is-calendar-drawer,
+  #app.calendar-drawer-open .channel-panel.is-calendar-drawer {
+    left: auto;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(92%, 385px);
+    border-radius: var(--radius-panel) 0 0 var(--radius-panel);
+    border-right: 0;
+  }
+}
+.channel-panel.is-calendar-drawer .channel-panel-head {
+  flex-shrink: 0;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+.channel-panel.is-calendar-drawer .channel-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: transparent;
+}
+.channel-panel-close[hidden] { display: none !important; }
+.channel-panel.is-calendar-drawer .channel-panel-close:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--hit-min);
+  height: var(--hit-min);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+}
+.channel-panel.is-calendar-drawer .channel-panel-close .ico {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.channel-panel.is-calendar-drawer .sidebar-mini-calendar {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.polls-view-mode {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--page-bg);
+  touch-action: pan-y;
+}
+
+.polls-view-mode button {
+  touch-action: pan-y;
+}
+
+.polls-view-mode input,
+.polls-view-mode textarea,
+.polls-view-mode select {
+  touch-action: auto;
+}
+
+.poll-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  touch-action: pan-y;
+  width: min(100%, var(--content-max, 620px));
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-16) 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.poll-head,
+.poll-create-types,
+.poll-option-edit,
+.poll-vote-names {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.poll-vote-names {
+  flex-wrap: wrap;
+}
+
+.poll-head {
+  justify-content: space-between;
+}
+
+.poll-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.poll-kicker,
+.poll-meta,
+.poll-hint,
+.poll-empty {
+  color: var(--text-secondary);
+}
+
+.poll-list,
+.poll-options,
+.poll-create-types {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.poll-row,
+.poll-option,
+.poll-type,
+.poll-back,
+.poll-primary,
+.poll-text,
+.poll-field,
+.event-polls-btn {
+  font: inherit;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+}
+
+.poll-row,
+.poll-option,
+.poll-type,
+.event-polls-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-12);
+}
+
+.poll-type.on,
+.poll-option.on {
+  background: var(--surface-3-strong);
+  border-color: var(--periwinkle-base);
+}
+
+.poll-sent-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+  padding: var(--space-12);
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+}
+
+.poll-sent-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.poll-sent-open,
+.poll-sent-dismiss {
+  font: inherit;
+  color: var(--periwinkle-text);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.poll-sent-dismiss {
+  color: var(--text-secondary);
+}
+
+.poll-row.is-closed {
+  opacity: 0.72;
+}
+
+.poll-back,
+.poll-primary {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+}
+
+.poll-primary {
+  background: var(--text-primary);
+  color: var(--surface-2);
+  border-color: var(--text-primary);
+}
+
+.poll-text,
+.poll-field {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-10) var(--space-12);
+}
+
+.poll-option-edit .poll-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.poll-remove {
+  font: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  padding: var(--space-8);
+}
+
+.poll-error {
+  color: var(--text-primary);
+  background: var(--danger-wash);
+  border-radius: var(--radius-sm);
+  padding: var(--space-8) var(--space-12);
+}
+
+.poll-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.event-polls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+/* Details tab (2026-09-25): whole-row actions instead of small pencils,
+ * directions link, ended state, larger targets and the place + map editor. */
+.conv-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.conv-event-row.has-action {
+  align-items: center;
+  padding: 0;
+}
+
+.conv-event-row-main {
+  appearance: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conv-event-row-main:active {
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+
+.conv-event-row-main:focus-visible {
+  outline: 2px solid var(--periwinkle-base, #6a63d8);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.conv-event-row-main .conv-event-row-ico {
+  margin-top: 0;
+}
+
+.conv-event-row-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.conv-event-row-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, var(--sage));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-event-row-chev {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--text-muted, var(--sage));
+}
+
+.conv-event-row-chev .ico {
+  width: 16px;
+  height: 16px;
+}
+
+.conv-event-row-directions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-left: 8px;
+  padding: 0 4px 0 12px;
+  border-left: 1px solid var(--border, var(--moss));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.conv-event-row-directions .ico {
+  width: 14px;
+  height: 14px;
+}
+
+.conv-event-notes-add {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 0 4px;
+}
+
+.conv-event-notes-edit:not(.conv-event-row-edit) {
+  min-height: 44px;
+  padding: 0 4px;
+}
+
+.conv-event-power button {
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-secondary, var(--sage));
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.conv-event-ended {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-1, #f1f2f4);
+  color: var(--text-secondary, var(--sage));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.conv-event-ended .ico {
+  width: 16px;
+  height: 16px;
+}
+
+.conv-place-card h4 {
+  margin: 0;
+}
+
+.conv-place-label {
+  margin: 4px 0 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-secondary, var(--sage));
+}
+
+.conv-place-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 10px;
+  background: var(--surface-2, #fff);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+
+.conv-place-opt-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.conv-place-opt-copy strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.conv-place-opt-copy small {
+  font-size: 12px;
+  color: var(--text-secondary, var(--sage));
+}
+
+.conv-place-opt-copy a {
+  color: var(--periwinkle-text, #322a85);
+  font-weight: 600;
+}
+
+.conv-place-opt-copy .ico {
+  width: 12px;
+  height: 12px;
+  margin-left: 2px;
+}
+
+/* Details tab declutter (2026-09-25 b): the header subtitle repeats the
+ * time/place rows, so hide it while Details is open; actions are rows in the
+ * same style as the facts; the Where editor keeps Save reachable. */
+.chat-feed-scope:has(.conv-event-tabs [data-conv-tab="description"][aria-selected="true"]) .chat-feed-select-sub {
+  display: none;
+}
+
+.conv-event-actions .conv-event-row:last-child {
+  border-bottom: 0;
+}
+
+.conv-event-actions .conv-event-row-main .conv-event-row-text {
+  font-weight: 550;
+}
+
+.conv-place-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 4px calc(-1 * var(--space-16, 16px)) 0;
+  padding: 12px var(--space-16, 16px) calc(12px + var(--safe-bottom, 0px));
+  background: var(--surface-2, #fff);
+  border-top: 1px solid var(--border, var(--moss));
+}
+
+.conv-place-actions .cancel {
+  min-height: 48px;
+}
+
+.conv-place-card .conv-place-save {
+  min-height: 48px;
+  min-width: 112px;
+  padding: 0 20px;
+  border: 1px solid var(--text-primary);
+  border-radius: var(--radius-md, 10px);
+  background: var(--text-primary);
+  color: var(--surface-2, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Share chooser */
+.conv-share-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+  padding-top: 18px;
+}
+
+.conv-share-card h4 {
+  margin: 0 0 4px;
+}
+
+.conv-share-opt {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 12px;
+  border: 1px solid var(--border, var(--moss));
+  border-radius: 12px;
+  background: var(--surface-2, #fff);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conv-share-opt:active {
+  background: color-mix(in srgb, var(--periwinkle-tint-soft, #eceaff) 60%, transparent);
+}
+
+.conv-share-ico {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border, var(--moss));
+  border-radius: 10px;
+  color: var(--text-secondary, var(--sage));
+}
+
+.conv-share-ico .ico {
+  width: 18px;
+  height: 18px;
+}
+
+/* Where editor: Save must beat .modal-card .save (50-event-detail.css loads later). */
+.conv-place-sheet .modal-card.conv-place-card .conv-place-actions .conv-place-save {
+  border: 1px solid var(--text-primary);
+  background: var(--text-primary);
+  color: var(--surface-2, #fff);
+}
+
+/* Notes sit last, after the action rows. */
+.conv-event-actions + .conv-event-notes {
+  padding-top: 4px;
+}
+
+/* Where editor v3 (2026-09-25): compact — name, current-map card, 2×2 action
+ * buttons, pinned footer. No radios or sub-text; fits one screen. */
+.conv-place-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 440px;
+  padding-top: 18px;
+  max-height: min(88vh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 0;
+  gap: 12px;
+}
+
+.conv-place-current-ico {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--periwinkle-text, #322a85);
+}
+
+.conv-place-current-ico .ico {
+  width: 18px;
+  height: 18px;
+}
+
+.conv-place-current-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.conv-place-current-text strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-place-current-text em {
+  color: var(--text-secondary, var(--sage));
+  font-size: 13px;
+  font-style: normal;
+}
+
+/* Where editor v5: white preview card + full-width action list. */
+.conv-place-card .conv-place-label {
+  margin: 4px 0 -4px;
+}
+
+.conv-place-preview-card.is-suggested {
+  border-style: dashed;
+}
+
+.conv-place-preview-card.is-linked {
+  border-color: var(--periwinkle-base, #6a63d8);
+}
+
+.conv-place-preview-card.is-new {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--surface-2));
+}
+
+.conv-place-preview-card.is-empty {
+  border-style: dashed;
+}
+
+.conv-place-preview-card.is-linked .conv-place-current-ico {
+  color: var(--periwinkle-text, #322a85);
+}
+
+.conv-place-preview-card.is-new .conv-place-current-ico {
+  color: var(--success-text);
+}
+
+.conv-place-preview-card .conv-place-current-text em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-place-acts {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border, var(--moss));
+}
+
+.conv-place-act {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border, var(--moss));
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conv-place-act .ico {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary, var(--sage));
+}
+
+.conv-place-act.is-primary,
+.conv-place-act.is-primary .ico {
+  color: var(--periwinkle-text, #322a85);
+}
+
+.conv-place-act.is-danger,
+.conv-place-act.is-danger .ico {
+  color: var(--ember, #c0392b);
+}
+
+.conv-place-act:active {
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+
+/* Where editor v6: detailed preview (chip, name, address, source, link) */
+.conv-place-preview-card {
+  display: flex;
+  gap: 10px;
+  min-height: 60px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 12px;
+  background: var(--surface-2, #fff);
+  align-items: flex-start;
+  padding: 12px;
+}
+
+.conv-place-preview-card .conv-place-current-ico {
+  margin-top: 26px;
+}
+
+.conv-place-preview-card .conv-place-current-ico .ico {
+  width: 22px;
+  height: 22px;
+}
+
+.conv-place-preview-card .conv-place-current-text {
+  gap: 2px;
+}
+
+.conv-place-preview-card .conv-place-current-text strong {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.conv-place-chip {
+  align-self: flex-start;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 999px;
+  color: var(--text-secondary, var(--sage));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.conv-place-chip.is-on {
+  border-color: var(--periwinkle-base, #6a63d8);
+  background: var(--periwinkle-tint-soft, #eceaff);
+  color: var(--periwinkle-text, #322a85);
+}
+
+.conv-place-chip.is-new {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 16%, var(--surface-2));
+  color: var(--success-text);
+}
+
+.conv-place-addr {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.conv-place-preview-card .conv-place-url {
+  color: var(--text-muted, var(--sage));
+  font-size: 12px;
+}
+
+a.conv-place-act {
+  text-decoration: none;
+}
+
+/* Poll create form v2 (2026-09-25): pick a type first, then only that type's
+ * fields; numbered, removable options; pinned footer with the main action. */
+.poll-create-head {
+  justify-content: flex-start;
+  gap: var(--space-12, 12px);
+}
+
+.poll-create-head .poll-title {
+  font-size: 20px;
+}
+
+.poll-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 12px 0 6px;
+}
+
+.poll-step,
+.poll-label {
+  margin: 4px 0 -4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.poll-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poll-create .poll-type {
+  min-height: 64px;
+}
+
+.poll-type-label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.poll-type-chosen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 4px 0 12px;
+  border: 1px solid var(--periwinkle-base);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+}
+
+.poll-type-chosen .poll-kicker {
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.poll-change {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--periwinkle-text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.poll-create .poll-text,
+.poll-create .poll-field {
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.poll-note {
+  margin: -4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.poll-option-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+}
+
+.poll-option-list > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.poll-option-edit.poll-choice,
+.poll-avail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 4px 0 12px;
+}
+
+.poll-avail {
+  display: flex;
+  flex-direction: column;
+}
+
+.poll-num {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-3-strong, var(--surface-1));
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.poll-option-edit.poll-choice .poll-text {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding-left: 4px;
+}
+
+.poll-avail-summary {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.poll-avail.is-editing .poll-avail-summary {
+  color: var(--periwinkle-text);
+}
+
+.poll-avail-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 12px 12px 42px;
+}
+
+.poll-avail-edit[hidden],
+.poll-times[hidden],
+.poll-times .poll-label[hidden] {
+  display: none;
+}
+
+.poll-segs {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.poll-seg + .poll-seg {
+  border-left: 1px solid var(--border);
+}
+
+.poll-seg.on {
+  background: var(--periwinkle-tint-soft);
+  color: var(--periwinkle-text);
+  font-weight: 700;
+}
+
+.poll-times {
+  display: flex;
+  gap: 8px;
+}
+
+.poll-times .poll-label {
+  flex: 1;
+  margin: 0;
+}
+
+.poll-done {
+  align-self: flex-end;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+}
+
+.poll-create .poll-remove {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+}
+
+.poll-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--periwinkle-text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.poll-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.poll-chip {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+
+.poll-chip.on {
+  border-color: var(--periwinkle-base);
+  background: var(--periwinkle-tint-soft);
+  color: var(--periwinkle-text);
+  font-weight: 700;
+}
+
+.poll-more[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.poll-create-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: auto calc(-1 * var(--space-16, 16px)) 0;
+  padding: 12px var(--space-16, 16px);
+  background: var(--page-bg);
+  border-top: 1px solid var(--border);
+}
+
+.poll-foot-hint {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.poll-create .poll-submit {
+  min-height: 48px;
+  padding: 0 20px;
+  font-weight: 700;
+}
+
+.poll-create .poll-submit.is-waiting {
+  opacity: 0.55;
+}
+
+/* Poll create fixes: rows fill the width (the base .poll-option-edit centres
+ * items), footer sits directly above the dock, clearer disclosure. */
+.poll-create .poll-option-edit.poll-avail {
+  align-items: stretch;
+}
+
+.poll-create .poll-avail-row {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.poll-create .poll-avail-edit {
+  padding: 4px 12px 14px 42px;
+  box-sizing: border-box;
+}
+
+.poll-create .poll-avail-edit .poll-field,
+.poll-create .poll-segs {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.poll-seg {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 0 6px;
+}
+
+.poll-more > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  gap: 6px;
+  list-style: none;
+}
+
+.poll-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.poll-more > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: 2px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.poll-more[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+
+.board-nav-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-8);
+  min-height: var(--hit-min);
+  padding: 0 var(--space-panel);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.board-nav-row[hidden],
+.board-back-chat[hidden],
+.board-event-tabs[hidden] { display: none; }
+.board-back-chat {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-min);
+  padding: 0 var(--space-8);
+  color: var(--periwinkle-text);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-bold);
+  background: none;
+  border: 0;
+}
+.board-event-tabs {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.board-all-chat {
+  flex: none;
+  min-height: var(--hit-min);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.board-all-chat:focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: -2px; }
+.board-compose-add:focus-visible,
+.board-back-chat:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+.board-event-dot {
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-pill, 99px);
+  background: var(--periwinkle-base);
+  flex: none;
+}
+.msg-meta { display: flex; align-items: center; gap: var(--space-4); }
+.board-msg-run {
+  margin-bottom: var(--space-20);
+  transition: background-color var(--dur-panel) var(--ease-enter);
+}
+.board-msg-run.is-open { background: var(--periwinkle-tint-soft); }
+.board-msg-run.is-arrive { background: var(--periwinkle-tint); }
+.msg.is-continuing {
+  background: var(--periwinkle-tint-soft);
+  border-radius: 0;
+  margin-left: calc(var(--space-12) * -1);
+  padding-left: var(--space-12);
+}
+#chat-scroll .board-msg-run.is-continue-target .msg.is-continue-target {
+  background: var(--surface-3);
+  border-radius: var(--radius-sm);
+}
+
+@keyframes board-rail-expand {
+  from { transform: scale(0.35, 0.45); }
+  to { transform: none; }
+}
+.board-event-card {
+  --rail-x: var(--space-12);
+  position: relative;
+  z-index: 0;
+  margin: var(--space-12) 0 var(--space-20);
+  padding: var(--space-12);
+  padding-right: var(--space-32);
+  background: none;
+}
+.board-event-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  right: calc(var(--rail-x) - 1px);
+  border: 2px solid var(--text-secondary);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+  pointer-events: none;
+}
+.board-event-card.is-pinned-compact {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 0 var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  background: var(--surface-2);
+  border-radius: var(--radius-panel);
+}
+.board-event-card.is-pinned-compact::before { right: 0; }
+.board-event-card.is-pinned-compact::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  top: calc(-1 * var(--space-24));
+  left: calc(-1 * var(--space-20));
+  right: calc(-1 * var(--space-20));
+  bottom: calc(-1 * var(--space-24));
+  background: linear-gradient(to bottom, var(--page-bg) calc(100% - var(--space-24)), transparent);
+  pointer-events: none;
+}
+.board-event-card.is-pinned-compact.is-rsvp-open { z-index: 6; }
+.board-event-card.is-pinned-compact .board-event-facts {
+  display: block;
+  margin-top: var(--space-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.board-event-meta-text { min-width: 0; }
+.board-event-fold {
+  position: relative;
+  flex: 0 0 auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  line-height: var(--lh-none);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.board-event-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+.board-event-tasks-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  margin: 0;
+  padding: var(--space-4) 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  line-height: var(--lh-none);
+  text-align: left;
+  cursor: pointer;
+}
+.board-event-tasks-label { min-width: 0; }
+.board-event-tasks-caret {
+  display: inline-flex;
+  margin-left: auto;
+  color: var(--text-muted);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.board-event-tasks.is-open .board-event-tasks-caret {
+  transform: rotate(180deg);
+}
+.board-event-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 0 var(--space-4);
+}
+.board-event-task-row {
+  display: grid;
+  grid-template-columns: var(--hit-min) minmax(0, 1fr);
+  align-items: center;
+  min-height: var(--row-min);
+}
+.board-event-task-complete {
+  display: grid;
+  width: var(--hit-min);
+  height: var(--hit-min);
+  min-width: var(--hit-min);
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--periwinkle-base);
+  cursor: pointer;
+}
+.board-event-task-complete > span {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: var(--space-20);
+  height: var(--space-20);
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-round);
+  background: var(--surface-2);
+}
+.board-event-task-title {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: var(--fs-body-sm);
+  line-height: var(--lh-body);
+}
+.board-event-tasks-empty {
+  margin: 0;
+  padding: 0 0 0 var(--hit-min);
+  color: var(--text-muted);
+  font-size: var(--fs-caption);
+}
+.board-event-fold::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--space-12) * -1);
+  right: 0;
+  top: 50%;
+  height: var(--hit-min);
+  transform: translateY(-50%);
+}
+
+.board-event-card .board-rsvp {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  align-self: center;
+  height: auto;
+  gap: 0;
+  margin-left: auto;
+}
+.board-event-card .board-rsvp-toggle, .board-event-head .board-rsvp-toggle {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--space-24);
+  padding: 0 var(--space-8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  white-space: nowrap;
+}
+.board-event-card .board-rsvp-toggle::after, .board-event-head .board-rsvp-toggle::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  top: calc(var(--space-12) * -1);
+  height: var(--hit-min);
+}
+
+.board-event-card .board-rsvp-toggle.is-going::before, .board-event-head .board-rsvp-toggle.is-going::before,
+.board-event-card .board-rsvp-menu button.is-current.is-going::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--text-primary);
+  opacity: 0.14;
+  pointer-events: none;
+}
+.board-event-card .board-rsvp-toggle.is-out, .board-event-head .board-rsvp-toggle.is-out {
+  border-color: var(--border);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+}
+.board-rsvp-check,
+.board-rsvp-caret {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+.board-rsvp-caret {
+  color: var(--text-secondary);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.board-event-card .board-rsvp-toggle[aria-expanded="true"] .board-rsvp-caret, .board-event-head .board-rsvp-toggle[aria-expanded="true"] .board-rsvp-caret {
+  transform: rotate(180deg);
+}
+
+.board-event-card .board-rsvp-toggle .ico, .board-event-head .board-rsvp-toggle .ico,
+.board-rsvp-menu .ico {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+.board-event-card.is-rsvp-open { z-index: 2; }
+.board-rsvp-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 148px;
+  margin-top: var(--space-4);
+  overflow: hidden;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-2);
+  transform-origin: right top;
+  animation: board-rail-expand var(--dur-panel) var(--ease-enter);
+}
+.board-event-card .board-rsvp-menu button {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--hit-min);
+  padding: 0 var(--space-12);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  text-align: left;
+  white-space: nowrap;
+}
+.board-event-card .board-rsvp-menu button + button { border-top: 1px solid var(--border); }
+.board-event-card .board-rsvp-menu button.is-going { color: var(--text-primary); }
+.board-event-card .board-rsvp-menu button.is-out { color: var(--text-secondary); }
+.board-event-card .board-rsvp-menu button.is-current.is-out { background: var(--surface-3); }
+button.board-event-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  line-height: var(--lh-body);
+  text-align: left;
+}
+.board-event-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-event-title .ico {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+}
+.board-event-facts,
+.board-context-caption {
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-event-facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  line-height: var(--lh-snug);
+}
+.board-event-title {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+.board-rsvp {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+}
+.board-rsvp button,
+.board-context-toggle {
+  min-height: var(--hit-min);
+  padding: 0 var(--space-8);
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--fs-body-sm);
+}
+
+.board-rsvp button.is-on {
+  color: var(--periwinkle-text);
+  background: var(--periwinkle-tint-soft);
+  border-radius: var(--radius-control, 10px);
+}
+
+.msg.is-surrounding .msg-body { color: var(--text-secondary); }
+body.float-board #view > .chat-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overscroll-behavior: none;
+}
+body.float-board #view > .composer {
+  flex: 0 0 auto;
+}
+
+.board-msg-run.is-selected,
+.board-msg-run.is-disconnect {
+  outline: 2px solid var(--text-primary);
+  border-radius: var(--radius-control, 10px);
+}
+.board-msg-run.is-chain-target {
+  outline: 2px solid var(--text-primary);
+  border-radius: var(--radius-md);
+}
+.board-continuing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0 var(--space-8) var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-continuing-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-regular, 400);
+}
+.board-continuing-excerpt {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-continuing-event {
+  flex: none;
+  color: var(--text-secondary);
+  font-weight: var(--fw-bold);
+}
+#board-stop-continuing {
+  margin-left: auto;
+  min-width: var(--hit-min);
+  min-height: var(--hit-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+.composer.is-board {
+  padding: 0 calc(var(--space-16) + var(--space-2)) var(--space-8);
+  --rail-x: calc(var(--space-16) + var(--space-2) + var(--space-12) - 1px);
+  --rail-mid: calc(var(--rail-x) + 1px);
+  --detach: 0px;
+  --pull-fade: 1;
+  position: relative;
+  z-index: 2;
+  margin-top: var(--detach);
+}
+
+body.float-board #view > .composer.is-board {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: var(--space-8);
+  background: var(--page-bg);
+}
+body.float-board #view > .composer.is-board::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: var(--space-32);
+  background: var(--page-bg);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black);
+  mask-image: linear-gradient(to bottom, transparent, black);
+  pointer-events: none;
+}
+.composer.is-board .composer-wrap {
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+}
+.composer:not(.is-board) .board-compose-card { display: contents; }
+.composer.is-board .board-compose-card {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  margin: var(--space-4) 0 0;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-md);
+}
+.composer.is-board .board-compose-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+}
+.composer.is-board .board-compose-panel > form,
+.composer.is-board .board-compose-panel-body > form {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+  align-items: center;
+  align-self: flex-end;
+  min-height: var(--hit-min);
+  gap: var(--space-4);
+}
+.composer.is-board .board-compose-panel-body > form.has-reply {
+  flex-direction: column;
+  align-items: stretch;
+  align-self: stretch;
+  padding-top: 0;
+}
+.composer.is-board .board-compose-panel-body > form > .composer-field-row {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0;
+}
+.composer.is-board .board-compose-panel-body > form.has-reply > .composer-field-row {
+  padding-top: var(--space-8);
+}
+.composer.is-board #composer-form .board-compose-add {
+  flex: none;
+  order: -1;
+  width: var(--hit-min);
+  min-width: var(--hit-min);
+  min-height: var(--hit-min);
+  margin: 0;
+  color: var(--text-secondary);
+}
+.composer.is-board .composer-reply-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex: none;
+  min-width: 0;
+  margin: 0 calc(var(--space-12) * -1);
+  padding: var(--space-8) var(--space-8) var(--space-8) var(--space-12);
+  border-bottom: 1px solid var(--border);
+}
+.composer.is-board .composer-field-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-width: 0;
+  padding-top: 0;
+}
+.composer-reply-label {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.composer-reply-label b {
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+}
+.composer-reply-cancel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  margin: 0;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  line-height: var(--lh-none);
+  white-space: nowrap;
+}
+.composer-reply-cancel::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + var(--space-8));
+  height: var(--hit-min);
+  transform: translate(-50%, -50%);
+}
+.composer-reply-cancel:active { opacity: 0.8; }
+.composer.is-board #composer-input {
+  display: block;
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  min-height: calc(var(--fs-body) * var(--lh-body) + var(--space-8));
+  max-height: calc(var(--space-48) + var(--space-48) + var(--space-32));
+  margin: 0;
+  padding: var(--space-4) 0;
+  border: 0;
+  background: none;
+  resize: none;
+  overflow: hidden;
+  line-height: var(--lh-body);
+}
+.composer.is-board #composer-input:focus,
+.composer.is-board #composer-input:focus-visible {
+  outline: none;
+}
+.composer.is-board .board-compose-panel .board-compose-send {
+  align-self: center;
+  margin: 0;
+}
+.board-compose-panel-body > .board-compose-send {
+  flex: none;
+  align-self: center;
+  width: var(--hit-min);
+  height: var(--hit-min);
+  margin: 0;
+}
+
+.board-field-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 0 var(--space-16);
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  white-space: nowrap;
+}
+
+.composer.is-separate .board-field-preview { display: none; }
+.board-hidden-note {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-4) var(--space-32) var(--space-4) 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  text-align: left;
+}
+
+.composer.is-chain .board-continuing {
+  margin-bottom: 0;
+  padding-right: var(--space-20);
+}
+.composer.is-chain .composer-tag-chip { padding-right: var(--space-20); }
+.board-compose-send {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  flex: none;
+  align-self: center;
+  width: var(--hit-min);
+  height: var(--hit-min);
+  margin-left: var(--space-8);
+  margin-right: calc(var(--rail-mid) - (var(--hit-min) / 2) - var(--space-16));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--text-primary);
+  color: var(--surface-2);
+}
+.board-compose-send .ico {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+}
+.board-compose-send:disabled { opacity: 0.45; }
+.board-compose-send:active:not(:disabled) { opacity: 0.8; }
+.composer.is-inline {
+  z-index: 2;
+  padding: 0;
+  margin: 0;
+}
+.composer.is-board .board-compose-panel-body > form.is-expand,
+.composer.is-board .board-compose-panel.is-expand {
+  transform-origin: right center;
+  animation: board-form-expand var(--dur-panel) var(--ease-enter);
+}
+@keyframes board-form-expand {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.composer.is-inline .board-compose-send { margin-right: calc(var(--space-12) * -1); }
+.composer.is-merging { transition: transform var(--dur-panel) var(--ease-enter); }
+.composer.is-merging .board-compose-send {
+  animation: board-send-arrive var(--dur-panel) var(--ease-enter);
+}
+@keyframes board-send-arrive {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+.board-from-bar {
+  /* White fields with the light card border, like the event cards (no beige). */
+  --from-field: var(--surface-2);
+  --from-field-line: var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  width: calc(100% - var(--space-16));
+  margin: 0 var(--space-8) var(--space-4);
+  padding: var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  /* Clearly apart from the chat behind it: an outline and a lift. */
+  border: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgb(0 0 0 / 0.10), 0 2px 6px rgb(0 0 0 / 0.06);
+}
+/* A field with nothing in it yet: dashed, waiting to be filled. */
+.board-from-field.is-empty:not(.is-correcting) { border-style: dashed; border-color: var(--border-strong, var(--text-secondary)); }
+.board-from-kicker {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.board-from-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: calc(var(--space-4) * -1);
+}
+.board-from-when {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+.board-from-field {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-12);
+  border: 1px solid var(--from-field-line);
+  border-radius: var(--radius-md);
+  background: var(--from-field);
+  color: var(--text-primary);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-snug);
+  text-align: left;
+}
+.board-from-when .board-from-field { flex: 1 1 0; }
+.board-from-change {
+  align-items: center;
+}
+.board-from-before {
+  flex: none;
+  color: var(--text-secondary);
+}
+.board-from-before.is-empty { color: var(--text-muted); }
+.board-from-arrow {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-secondary);
+}
+.board-from-arrow .ico {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.board-from-change .board-from-value { font-weight: var(--fw-bold); }
+.board-from-change.is-same .board-from-value,
+.board-from-change .board-from-value.is-empty {
+  color: var(--text-secondary);
+  font-weight: var(--fw-regular, 400);
+}
+.board-from-field.is-title {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+}
+.board-from-field.is-empty { color: var(--text-muted); }
+.board-from-field.is-correcting {
+  border-color: var(--periwinkle-border);
+  background: var(--periwinkle-tint-soft);
+}
+.board-from-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Clear and type (draft from chat). Tapping words in the chat is how a field
+   is set; beside the field being set sit "Type" (keyboard — the active
+   fallback) and ✕ (empty it). The title always has ✕ to start it from
+   scratch. A date or time that can't be read is underlined. */
+.board-from-field-row { position: relative; display: flex; min-width: 0; }
+/* Date and time each take a full row, always: the layout never shifts when
+   one is tapped and its buttons appear. */
+.board-from-when { flex-direction: column; }
+.board-from-when .board-from-field,
+.board-from-field-row.is-half { flex: none; width: 100%; }
+.board-from-field-row > .board-from-field { flex: 1; padding-right: calc(var(--space-8) + var(--acts, 36px)); }
+.board-from-field-row:has(.board-from-act + .board-from-act) { --acts: 72px; }
+.board-from-acts { position: absolute; top: 50%; right: var(--space-4); display: flex; transform: translateY(-50%); }
+.board-from-act {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-secondary);
+}
+.board-from-act .ico { width: var(--icon-sm); height: var(--icon-sm); }
+.board-from-act:active { background: var(--surface-3); }
+.board-from-field.is-typing > .board-from-act { margin: calc(var(--space-8) * -1) calc(var(--space-8) * -1) calc(var(--space-8) * -1) auto; }
+.board-from-field.is-typing { align-items: center; cursor: text; }
+.board-from-input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  line-height: var(--lh-snug);
+}
+.board-from-input::placeholder { color: var(--text-muted); font-weight: var(--fw-regular, 400); }
+.board-from-field.is-typing .board-from-pin { margin-top: 0; }
+.board-from-field.is-unreadable .board-from-value,
+.board-from-field.is-unreadable .board-from-input {
+  text-decoration: underline wavy var(--red-text, #b42318);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.board-from-pin {
+  display: inline-flex;
+  flex: none;
+  margin-top: var(--space-2);
+  color: var(--text-primary);
+}
+.board-from-pin .ico {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.board-word.is-on {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--periwinkle-tint-strong);
+  font-weight: var(--fw-bold);
+}
+.board-from-bar [data-board-from-cancel] .ico {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.board-from-bar [data-board-from-edit] {
+  min-height: var(--hit-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-regular, 400);
+  text-decoration: underline;
+}
+.board-from-bar [data-board-from-edit]:active { opacity: 0.8; }
+.board-from-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.board-from-bar [data-board-from-go],
+.board-from-bar [data-board-from-done],
+.board-from-bar [data-board-from-update] {
+  margin-left: auto;
+  min-height: var(--hit-min);
+  padding: 0 var(--space-16);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--text-primary);
+  color: var(--surface-2);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-bold);
+}
+.board-from-bar [data-board-from-go]:active:not([disabled]),
+.board-from-bar [data-board-from-update]:active:not([disabled]),
+.board-from-bar [data-board-from-done]:active { opacity: 0.8; }
+.board-from-bar button[disabled] { opacity: 0.45; }
+/* The message(s) a draft is read from: a neutral tint around them, drawn with
+   a spread shadow so nothing moves. */
+.msg.is-from-chat {
+  background: color-mix(in srgb, var(--text-primary) 6%, var(--page-bg));
+  box-shadow: 0 0 0 var(--space-8) color-mix(in srgb, var(--text-primary) 6%, var(--page-bg));
+  border-radius: 2px;
+}
+.msg.is-from-chat-locked { opacity: 0.45; }
+
+.board-compose-add {
+  display: grid;
+  place-items: center;
+  width: var(--hit-min);
+  min-width: var(--hit-min);
+  min-height: var(--hit-min);
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+}
+.board-nav-row > .board-archive {
+  flex: none;
+  align-self: center;
+  margin-left: auto;
+  color: var(--text-secondary);
+}
+.board-nav-row > .board-archive.is-on {
+  color: var(--text-primary);
+}
+.composer.is-board.is-archive {
+  padding: var(--space-4) 0 var(--space-8);
+  background: var(--page-bg);
+}
+.board-archive-rail {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 var(--space-8);
+}
+.board-archive-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--hit-min);
+  margin: 0;
+  padding: var(--space-4) var(--space-12);
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+}
+.board-archive-chip-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  border-bottom: 2px solid transparent;
+}
+.board-archive-chip.is-on {
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+}
+.board-archive-chip.is-on .board-archive-chip-copy {
+  border-bottom-color: var(--text-primary);
+}
+.board-archive-chip-date {
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-regular, 400);
+}
+.board-archive-chip:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
+.board-compose-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--icon-xs);
+  min-width: var(--icon-xs);
+  height: var(--icon-xs);
+  margin-left: auto;
+  margin-right: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+}
+.board-compose-close.is-reserved {
+  visibility: hidden;
+  pointer-events: none;
+}
+.board-compose-close .ico {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+
+button.board-field-preview {
+  min-height: 0;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular, 400);
+  line-height: var(--lh-none);
+  text-align: left;
+}
+
+.composer.is-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.composer.is-idle .board-hidden-note,
+.composer.is-idle .board-from-bar { align-self: stretch; }
+.board-start-rail {
+  display: none;
+  position: absolute;
+  right: var(--rail-mid);
+  top: calc(var(--rail-up, 0px) * -1);
+  width: 2px;
+  height: calc(var(--rail-up, 0px) + var(--rail-join, 0px) + 1px);
+  background: var(--text-secondary);
+  opacity: 0.45;
+  transform: translateX(50%);
+  transform-origin: top center;
+  pointer-events: none;
+}
+.board-page-links {
+  display: flex;
+  flex-direction: column;
+}
+.board-people-page {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-16) var(--space-panel) calc(var(--space-24, 24px) + var(--safe-bottom, 0px));
+}
+.board-options > .board-opt-line {
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+}
+.board-page-links button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: var(--hit-min);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius-control, 10px);
+  background: none;
+  text-align: left;
+  font-size: var(--fs-body-sm);
+  color: var(--text-primary);
+}
+.board-page-links button .ico {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  flex: none;
+  color: var(--text-secondary);
+}
+.board-page-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-page-meta {
+  margin-left: auto;
+  flex: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+/* Colour roles: purple is focus only, so the current page is a plain tint. */
+.board-page-links button[aria-current="page"] { background: var(--surface-3); }
+.board-page-links button[aria-current="page"] .ico { color: var(--text-primary); }
+
+.chat-msg-sheet {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.chat-msg-sheet-row {
+  position: relative;
+}
+.chat-msg-sheet-hit {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+.chat-msg-sheet-note {
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-snug);
+}
+.chat-msg-sheet-row.is-noted {
+  align-items: flex-start;
+}
+.chat-msg-sheet-row.is-noted > .ico {
+  margin-top: var(--space-2);
+}
+
+.chat-msg-sheet-actions .chat-msg-sheet-row.is-split {
+  margin-top: var(--space-8);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--border);
+}
+.msg { position: relative; }
+.msg-reply-cue {
+  position: absolute;
+  top: 50%;
+  right: var(--space-8);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  opacity: 0;
+  pointer-events: none;
+}
+.msg-reply-cue.is-armed {
+  background: var(--text-primary);
+  color: var(--surface-2);
+}
+.msg-reply-cue .ico {
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.msg.is-reply-settling > .avatar,
+.msg.is-reply-settling > .msg-main,
+.msg.is-reply-settling > .msg-reply-cue {
+  transition: transform var(--dur-panel) var(--ease-enter), opacity var(--dur-fast) var(--ease-standard);
+}
+
+/* Inline destination: fixed alongside the growing textarea, never a chip row. */
+.composer.is-board .board-compose-panel-body { display: flex; align-items: flex-end; min-width: 0; min-height: var(--hit-min); padding: 0 var(--space-8) var(--space-4); gap: var(--space-4); padding-top: var(--space-4); }
+.composer.is-board .board-composer-editable {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-4);
+}
+.composer.is-board #board-destination-slot {
+  display: flex;
+  flex: 0 1 auto;
+  max-width: 40%;
+  min-width: 0;
+}
+.composer.is-board #board-destination-slot[hidden],
+.composer.is-board #composer-form .board-compose-add[hidden] { display: none; }
+.board-destination-chip {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--destination-color, var(--text-primary));
+}
+.composer.is-board .board-destination-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  padding: 3px 0 3px 7px;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-meta);
+  line-height: 1.25;
+}
+.composer.is-board .board-destination-clear {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 28px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: #000;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.composer.is-board .board-destination-clear::after {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+}
+.composer.is-board .board-destination-clear:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.board-destination-label > span:last-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: clip; white-space: nowrap; text-align: left; }
+.composer.is-board .board-composer-editable #composer-input { flex: 1; min-width: 0; width: 0; }
+.board-destination-picker {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-height: min(280px, 45vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  box-shadow: 0 4px 18px #0002;
+}
+.board-destination-picker[hidden] { display: none; }
+.board-destination-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  text-align: left;
+  color: var(--text-primary);
+  font: inherit;
+}
+.board-destination-option.is-highlighted, .board-destination-option:focus-visible { background: var(--surface-3); }
+.board-destination-option-title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.board-destination-option-date { flex: none; text-align: right; color: var(--text-secondary); font-size: var(--fs-meta); }
+.board-destination-empty { padding: 12px; color: var(--text-secondary); }
+
+.board-destination-results { min-height: 0; overflow-y: auto; }
+.board-destination-option:disabled { opacity: .45; }
+
+/* The wrapper receives swipe gestures even while an empty Send is disabled. */
+.board-send-gesture { display: flex; flex: none; align-self: center; touch-action: none; }
+.board-send-gesture .board-compose-send:disabled { pointer-events: none; }
+
+/* Leading # turns the creation control into the tag picker without moving it. */
+.board-compose-add .board-compose-plus-icon,
+.board-compose-add .board-compose-hash-icon {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.board-compose-add .board-compose-hash-icon { opacity: 0; transform: rotate(-45deg) scale(.65); }
+.board-compose-add.is-hash .board-compose-plus-icon { opacity: 0; transform: rotate(45deg) scale(.65); }
+.board-compose-add.is-hash .board-compose-hash-icon { opacity: 1; transform: rotate(0) scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .board-compose-add .board-compose-plus-icon,
+  .board-compose-add .board-compose-hash-icon { transition: none; }
+}
+
+/* ── Chat interaction redesign (Oct 2026) ─────────────────────────────── */
+
+/* Jump to latest: floats just above the composer once you're a screen up. */
+.composer.is-board > .board-jump-latest,
+#view > .board-jump-latest {
+  position: absolute;
+  right: calc(var(--space-16) + var(--space-2));
+  bottom: calc(100% + var(--space-8));
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+}
+.composer.is-board > .board-jump-latest[hidden],
+#view > .board-jump-latest[hidden] { display: none; }
+.board-jump-latest .ico { width: var(--icon-md, 20px); height: var(--icon-md, 20px); }
+
+/* "or 11 Oct": one-tap swap for an ambiguous "next <weekday>". */
+.board-from-alt {
+  align-self: flex-start;
+  min-height: 32px;
+  margin: calc(var(--space-4) * -1) 0 0;
+  padding: var(--space-4) var(--space-8);
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* Inside the date field, on its right: same place as its buttons. */
+.board-from-field-row.has-alt { --acts: 112px; }
+.board-from-field-row.has-alt .board-from-alt { margin: 0; align-self: center; white-space: nowrap; }
+
+#chat-scroll.is-board-feed .msg { padding: 2px 0; }
+#chat-scroll.is-board-feed .msg.head-gap { margin-top: var(--space-8); }
+
+/* Draft close: full-size touch target without changing the layout. */
+.board-from-bar [data-board-from-cancel] { display: grid; place-items: center; flex: none; width: var(--space-24); height: var(--space-24); margin: 0 0 0 auto; padding: 0; border: 0; background: none; color: var(--text-secondary); position: relative; }
+.board-from-bar [data-board-from-cancel]::after { content: ""; position: absolute; inset: -12px; }
+body.board-from-chat .board-jump-latest { display: none; }
+body.board-selecting #chat-scroll .msg { isolation: isolate; cursor: pointer; }
+body.board-selecting #chat-scroll .msg.is-selected::after {
+  content: "";
+  position: absolute;
+  inset: 0 calc(var(--space-8) * -1);
+  z-index: -1;
+  border-radius: var(--radius-md);
+  /* Neutral: purple means focus only. */
+  background: color-mix(in srgb, var(--text-primary) 9%, transparent);
+}
+body.board-selecting #view > .board-jump-latest,
+body.board-selecting .composer.is-board > .board-jump-latest { display: none; }
+
+.board-select-bar {
+  position: absolute;
+  inset: 0;
+  box-shadow: 0 0 0 var(--space-8) var(--page-bg);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 18px);
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+.board-select-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--hit-min, 44px);
+  height: var(--hit-min, 44px);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+}
+.board-select-bar button:active { background: var(--surface-3); }
+.board-select-count {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: var(--fs-body);
+}
+
+.board-select-reacts {
+  position: absolute;
+  left: 50%;
+  z-index: 25;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.14);
+  transform: translateX(-50%);
+}
+.board-select-reacts button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+}
+.board-select-reacts button:active { background: var(--surface-3); }
+
+/* The action block takes the composer's place while selecting. */
+body.board-selecting #view > .composer.is-board > :not(.board-select-block):not(.board-jump-latest) { display: none; }
+.board-select-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-12);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  /* Floats above the chat, like the quick create panel. */
+  box-shadow: 0 -4px 20px rgb(0 0 0 / 0.10), 0 2px 6px rgb(0 0 0 / 0.06);
+}
+.board-select-block.is-list { max-height: 44vh; }
+.board-select-new {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-12);
+  border: 1.5px solid var(--text-primary);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  text-align: left;
+}
+.board-select-new-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+.board-select-new-title { font-size: var(--fs-body); font-weight: 700; }
+.board-select-new-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-select-new-facts > span { display: inline-flex; align-items: center; gap: var(--space-4); }
+.board-select-new-facts.is-empty { color: var(--text-muted); }
+.board-select-block .ico { width: var(--icon-sm); height: var(--icon-sm); flex: none; }
+.board-select-secondary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: var(--hit-min, 44px);
+  padding: 0 var(--space-12);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-primary);
+  font-size: var(--fs-body-sm);
+  text-align: left;
+}
+.board-select-secondary > span { flex: 1; }
+.board-select-secondary.is-danger { color: var(--danger, #b91c1c); }
+.board-select-related {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 36px;
+  padding: 0 var(--space-12);
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-select-note,
+.board-select-in {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-select-in { color: var(--text-primary); font-size: var(--fs-body-sm); font-weight: 600; }
+.board-select-list-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-weight: 600;
+}
+.board-select-list-head button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+}
+.board-select-search {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-1, transparent);
+  color: var(--text-primary);
+  font: inherit;
+}
+.board-select-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.board-select-event {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--hit-min, 48px);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+}
+.board-select-event:last-child { border-bottom: 0; }
+.board-select-event-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-select-event-when { flex: none; color: var(--text-secondary); font-size: var(--fs-meta); }
+.board-select-empty { margin: var(--space-8) 0; color: var(--text-muted); font-size: var(--fs-meta); }
+
+/* Left-to-right "tag" swipe cue sits on the left. */
+.msg-reply-cue.is-left { right: auto; left: var(--space-8); }
+
+/* Event chat (filtered or replying into an event): the header is the event. */
+.board-event-head {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-12);
+  background: var(--page-bg);
+}
+.board-event-head::before {
+  content: "";
+  position: absolute;
+  inset: var(--space-8) var(--space-12);
+  z-index: -1;
+  border-radius: var(--radius-lg, 18px);
+  border: 1.5px solid var(--accent);
+  background: var(--surface-2);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+}
+.board-event-head-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--hit-min, 44px);
+  height: var(--hit-min, 44px);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+}
+.board-event-head-title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+}
+.board-event-head-name,
+.board-event-head-when {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-event-head-name { font-size: var(--fs-body); font-weight: 700; }
+.board-event-head-when { color: var(--text-secondary); font-size: var(--fs-meta); }
+.board-event-head .board-rsvp { flex: none; padding-right: var(--space-8); }
+
+/* Short chats sit at the bottom, next to the composer, like any chat app. */
+/* Not on the event page's non-chat tabs, which hide #chat-scroll. */
+#view:not(.conv-event-nonchat) > #chat-scroll.is-board-feed { display: flex; flex-direction: column; }
+#chat-scroll.is-board-feed > :first-child { margin-top: auto; }
+.board-event-bar.is-open .board-event-bar-btn { border-bottom-color: transparent; }
+/* Bar copy: plain words, no caps. Bold black only when something needs you. */
+.board-event-bar-label {
+  flex: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 400;
+}
+.board-event-bar-icon { display: inline-flex; flex: none; color: var(--text-secondary); }
+.board-event-bar-icon .ico { width: 18px; height: 18px; }
+.board-event-bar-ask { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-primary); font-size: var(--fs-meta); font-weight: 700; }
+.board-event-bar.is-ask .board-event-bar-icon { color: var(--text-primary); }
+.board-event-bar-btn.is-static { cursor: default; }
+.board-event-bar-new-event { display: inline-flex; flex: none; align-items: center; gap: var(--space-4); min-height: 34px; padding: 0 var(--space-12) 0 var(--space-8); border: 0; border-radius: var(--radius-pill, 99px); background: var(--text-primary); color: var(--page-bg); font: inherit; font-size: var(--fs-meta); font-weight: 600; }
+.board-event-bar-new-event .ico { width: 16px; height: 16px; }
+.board-event-bar-new-event:active { opacity: 0.8; }
+.board-event-bar.is-now .board-event-bar-label { color: var(--text-primary); }
+.board-event-bar-summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-event-bar-btn .board-event-dot,
+.board-event-row .board-event-dot,
+.board-event-stepper .board-event-dot { width: 10px; height: 10px; }
+.board-event-bar-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+.board-event-bar-when {
+  flex: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-event-bar-chev .ico { width: 18px; height: 18px; }
+.board-event-bar.is-open .board-event-bar-chev { transform: rotate(180deg); }
+
+/* Jump list: drops from the bar over the chat. */
+#view > .board-event-list-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgb(0 0 0 / 0.18);
+}
+#view > .board-event-list {
+  position: absolute;
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 6;
+  max-height: min(62vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-4) 0 var(--space-8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 18px);
+  background: var(--surface-2);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.16);
+}
+.board-event-list-label {
+  margin: var(--space-8) var(--space-16) var(--space-2);
+  color: var(--text-muted, var(--text-secondary));
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+.board-event-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-right: var(--space-12);
+}
+.board-event-row.is-hidden .board-event-row-name,
+.board-event-row.is-hidden .board-event-dot { opacity: 0.55; }
+
+/* Stepper: above the composer, left of the jump-to-latest button. */
+.composer.is-board > .board-event-stepper,
+#view > .board-event-stepper {
+  position: absolute;
+  left: var(--space-16);
+  right: calc(var(--space-16) + 44px + var(--space-12));
+  bottom: calc(100% + var(--space-8));
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: max-content;
+  min-height: 44px;
+  padding: 0 var(--space-2) 0 var(--space-12);
+  border: 1.5px solid var(--text-secondary);
+  border-radius: var(--radius-pill, 99px);
+  background: var(--surface-2);
+  background: color-mix(in srgb, var(--text-secondary) 8%, var(--surface-2));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  color: var(--text-primary);
+}
+.board-event-stepper-pos {
+  flex: none;
+  min-width: 2.6em;
+  text-align: center;
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+.board-event-stepper-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-primary);
+}
+.board-event-stepper-btn:disabled { opacity: 0.3; }
+.board-event-stepper-btn.is-close { color: var(--text-secondary); }
+.board-event-stepper-btn .ico { width: 18px; height: 18px; }
+
+/* Landing flash for an event card. */
+#chat-scroll .board-event-card::before { transition: background-color 0.3s ease; }
+#chat-scroll .board-event-card.is-arrive::before { background: color-mix(in srgb, var(--accent) 10%, var(--surface-2)); }
+
+/* Out of the way while selecting or drafting an event from chat. */
+body.board-selecting #view > .board-event-bar,
+body.board-from-chat #view > .board-event-bar,
+body.board-selecting .board-event-stepper,
+body.board-from-chat .board-event-stepper { display: none; }
+#chat-scroll.is-board-feed .msg-meta .when {
+  font-family: inherit;
+  font-size: var(--fs-caption, 12px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+/* Focus fade (board-event-nav.js writes the per-event rule). */
+#chat-scroll.is-board-feed .board-msg-run,
+#chat-scroll.is-board-feed .board-event-card { transition: opacity 0.2s ease; }
+.board-event-row-icon .ico { width: 20px; height: 20px; }
+.board-event-row-main > .board-event-dot { margin: 0 5px; }
+
+/* ── Event label on a message's name line: plain "#Event" text ─────────── */
+.msg-event-tag {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  max-width: 55%;
+  margin-left: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  line-height: inherit;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.2s ease;
+}
+/* 44px touch area around the text. */
+.msg-event-tag::after { content: ""; position: absolute; inset: -14px -6px; }
+.msg-event-tag-hash { flex: none; margin-right: 1px; opacity: 0.8; }
+.msg-event-tag-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#chat-scroll.is-board-feed .msg-meta { align-items: baseline; gap: var(--space-8); min-width: 0; }
+
+/* ── Event card as a message from its creator ────────────────────────── */
+#chat-scroll .board-event-card.is-message {
+  margin: 0 0 var(--space-8);
+  padding: 0;
+}
+#chat-scroll .board-event-card.is-message::before {
+  border: 0;
+  background: transparent;
+  inset: -2px calc(var(--space-8) * -1);
+  border-radius: var(--radius-md, 12px);
+}
+
+.board-event-added { color: var(--text-secondary); font-size: var(--fs-meta); font-weight: 400; white-space: nowrap; }
+.board-event-card.is-message .board-event-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+}
+.board-event-card.is-message .board-event-title .board-event-dot { width: 8px; height: 8px; }
+
+.board-event-card.is-message .board-event-meta-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* RSVP is a status: it looks the same for every event. */
+.board-event-card.is-message .board-rsvp-toggle.is-going {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.board-event-card.is-message .board-rsvp-toggle.is-going::before { background: var(--text-secondary); }
+
+/* Landing flash for a plain run: a light periwinkle tint. */
+#chat-scroll.is-board-feed .board-msg-run { margin-bottom: var(--space-8); border-radius: var(--radius-md, 12px); transition: background-color 0.3s ease, opacity 0.2s ease; }
+#chat-scroll.is-board-feed .board-msg-run.is-arrive { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* Stepper: neutral pill; the event name is periwinkle (focus). */
+.composer.is-board > .board-event-stepper,
+#view > .board-event-stepper {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+/* The event name opens its page; ✕ leaves the focus (and its tag). */
+.board-event-stepper-name { display: inline-flex; align-items: center; gap: 2px; min-width: 0; min-height: 40px; margin: 0 var(--space-4) 0 calc(var(--space-4) * -1); padding: 0 var(--space-4); border: 0; border-radius: var(--radius-sm, 8px); background: none; font: inherit; font-size: var(--fs-meta); font-weight: 700; color: var(--accent); }
+.board-event-stepper-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-event-stepper-name .ico { flex: none; width: 14px; height: 14px; }
+.board-event-stepper-name:active { background: var(--surface-3); }
+/* The event bar is the tag: while it shows, the in-field chip for an event
+   tag hides (the bar's ✕ removes the tag and the focus). */
+body.board-event-stepping .composer.is-board #board-destination-slot.is-event { display: none; }
+.board-event-stepper-hash { flex: none; margin-right: 1px; }
+/* One stop: no ↑ n/N ↓. */
+.board-event-stepper.is-single [data-event-step],
+.board-event-stepper.is-single .board-event-stepper-pos { display: none; }
+.board-event-card.is-message.is-collapsed .board-event-box { background: transparent; border-style: dashed; }
+.board-event-row-main:active { background: var(--surface-3); }
+.board-archive-chip .board-event-dot { position: static; transform: none; display: none; }
+.composer.is-board .board-destination-chip { --destination-color: var(--accent); }
+.board-destination-symbol { flex: none; font-size: 1em; font-weight: 700; }
+
+/* Event colour: there is none. Periwinkle (--accent) is focus only: the
+   focused event's #labels and title, its row in the event list, the stepper,
+   the tag chip, the filtered-event header, the landing flash and selection. */
+#board-event-list .board-event-row.is-focus .board-event-row-name,
+#board-event-list .board-event-row.is-focus .board-event-row-icon { color: var(--accent); }
+
+/* ── Events lead (Oct 2026): an event message's left column is the event's
+   icon (tap: focus the event); the sender's face is a chip on the name line.
+   A chain hangs off its first message: later messages hide the icon and a
+   connected rail runs down the column to the last one's name line. General
+   chat keeps the face — also the handle for dragging it onto an event. ── */
+#chat-scroll.is-board-feed .msg-ev-lead {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+#chat-scroll.is-board-feed .msg-ev-lead .msg-ev-lead-ico { display: inline-flex; }
+#chat-scroll.is-board-feed .msg-ev-lead .ico { width: 20px; height: 20px; }
+#chat-scroll.is-board-feed .msg-ev-lead:active { background: var(--surface-3); }
+#chat-scroll.is-board-feed .msg-ev-lead.spacer { visibility: hidden; height: 0; border: 0; }
+#chat-scroll.is-board-feed .msg.chain-prev > .msg-ev-lead { visibility: hidden; height: 0; border: 0; }
+/* Icon > date > time: when events in view share an icon the tile grows
+   down to add the date, and the time when the day is shared too. The rail
+   starts under the taller tile. */
+#chat-scroll.is-board-feed .msg-ev-lead.has-sub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+/* The tile stays the icon's 36px box; the date / time sit under it. */
+#chat-scroll.is-board-feed .msg-ev-lead.has-sub .msg-ev-lead-ico {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-2);
+}
+#chat-scroll.is-board-feed .msg-ev-lead.has-sub:active { background: none; }
+#chat-scroll.is-board-feed .msg-ev-lead.has-sub:active .msg-ev-lead-ico { background: var(--surface-3); }
+#chat-scroll.is-board-feed .msg-ev-lead-sub {
+  display: block;
+  max-width: 44px;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 10px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+#chat-scroll.is-board-feed .msg-ev-lead-sub + .msg-ev-lead-sub { color: var(--text-primary); }
+#chat-scroll.is-board-feed .msg.lead-sub-1.chain-next:not(.chain-prev)::after { top: 52px; }
+/* Rail under the tile and its date line(s): 36px + 2px gap + 10px a line + 4px. */
+#chat-scroll.is-board-feed .msg.lead-sub-2.chain-next:not(.chain-prev)::after { top: 64px; }
+#chat-scroll.is-board-feed .msg-who-face {
+  align-self: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  font-size: 8px;
+  line-height: 1;
+}
+#chat-scroll.is-board-feed .msg-who-face .avatar-face-ico { width: 12px; height: 12px; }
+#chat-scroll.is-board-feed .msg.chain-prev .msg-event-tag { display: none; }
+/* Tag state (left-to-right swipe, board-select.js) and dragging picked
+   messages onto an event (board-drag.js): every event in view is outlined as
+   a drop zone; the one under the finger fills in. */
+body.board-tagging #chat-scroll.is-board-feed .msg.is-selected { cursor: grab; }
+#chat-scroll.is-board-feed .msg.is-drag-source { opacity: 0.3; }
+/* One zone per stretch of an event (its card and the messages after it),
+   drawn on a layer over the chat. */
+.board-drop-zones { position: absolute; z-index: 2; overflow: hidden; pointer-events: none; }
+.board-drop-zone {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border: 1.5px dashed var(--border-strong, var(--text-secondary));
+  border-radius: var(--radius-md, 12px);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+.board-drop-zone-name {
+  position: absolute;
+  top: -1px;
+  right: 10px;
+  transform: translateY(-50%);
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--page-bg, #fff);
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.board-drop-zone.is-over { border-style: solid; border-color: var(--text-primary); background: color-mix(in srgb, var(--text-primary) 6%, transparent); }
+.board-drop-zone.is-over .board-drop-zone-name { color: var(--text-primary); }
+body.board-dragging, body.board-dragging * { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.board-drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  padding: var(--space-4) var(--space-8) var(--space-8);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-1, #fff);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  opacity: 0.96;
+}
+.board-drag-ghost .msg { margin: 0; }
+.board-drag-hint {
+  margin: 0 0 var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+.board-drag-ghost.is-over .board-drag-hint { color: var(--text-primary); }
+.board-drag-more { margin-top: var(--space-4); color: var(--text-secondary); font-size: var(--fs-meta); font-weight: 600; }
+.board-select-tag-head { display: flex; align-items: center; gap: var(--space-8); margin: 0 0 var(--space-4); }
+.board-select-tag-hint { display: flex; flex: 1; min-width: 0; align-items: center; gap: var(--space-8); margin: 0; color: var(--text-secondary); font-size: var(--fs-body-sm); }
+.board-select-cancel { flex: none; min-height: 36px; padding: 0 var(--space-12); border: 1px solid var(--border); border-radius: var(--radius-pill, 99px); background: var(--page-bg); color: var(--text-primary); font: inherit; font-size: var(--fs-meta); font-weight: 600; }
+.board-select-cancel:active { background: var(--surface-3); }
+.board-select-tag-hint .ico { width: 18px; height: 18px; flex: none; }
+/* Long-press must never start a native text selection in the chat. */
+#chat-scroll .msg, #chat-scroll .msg * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#chat-scroll.is-board-feed .msg.chain-next::after,
+#chat-scroll.is-board-feed .msg.chain-end::after,
+#chat-scroll.is-board-feed .msg.chain-prev::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  width: 2px;
+  border-radius: 0;
+  /* Ink, not the outline grey: a solid mix (no darker dots where segments meet). */
+  background: color-mix(in srgb, var(--text-primary) 45%, var(--page-bg));
+  pointer-events: none;
+  transition: background-color 0.2s ease;
+}
+/* First of a chain: from under the icon to the next message. */
+#chat-scroll.is-board-feed .msg.chain-next::after { top: 40px; bottom: calc(var(--chain-gap, 16px) * -1); }
+/* Tree: each later speaker (a header line) branches off the rail with a
+   straight line into their face chip (face at 47px, centred 11px down). The
+   branch starts at the rail's right edge, so no strokes overlap; the last
+   speaker's rail stops at its branch. Stacked lines: none. */
+#chat-scroll.is-board-feed .msg.chain-end::after { top: -1px; height: 13px; }
+/* Later messages: the rail runs straight through them (no icon), overlapping
+   the segment above by 1px so joins never show. */
+#chat-scroll.is-board-feed .msg.chain-prev.chain-next::after { top: -1px; }
+#chat-scroll.is-board-feed .msg.chain-prev::before { display: none; }
+#chat-scroll.is-board-feed .msg.chain-prev.head-gap::before {
+  display: block;
+  top: 10px;
+  left: 19px;
+  width: 25px;
+  height: 2px;
+  border-radius: 0 1px 1px 0;
+}
+.board-event-card.is-message .board-event-title { display: flex; align-items: center; flex: 1; min-width: 0; min-height: 32px; padding: 0; gap: var(--space-8); }
+.board-event-card.is-message .board-event-box { margin-top: var(--space-4); padding: var(--space-4) var(--space-4) var(--space-8) var(--space-12); border: 1px solid var(--border); border-radius: var(--radius-md, 12px); background: var(--surface-2); cursor: pointer; transition: background-color 0.15s ease; }
+.board-event-card.is-message .board-event-box:active { background: var(--surface-3); }
+
+/* While the stepper shows it stands in for jump-to-latest (↓ past the last stop). */
+body.board-event-stepping #view > .board-jump-latest,
+body.board-event-stepping .composer.is-board > .board-jump-latest { display: none; }
+/* The jump button is hidden while stepping, so the pill can use its room. */
+body.board-event-stepping .composer.is-board > .board-event-stepper,
+body.board-event-stepping #view > .board-event-stepper { right: var(--space-16); }
+
+#view > .board-event-bar .board-event-bar-btn { flex: 1; min-width: 0; }
+.board-event-bar-copy { display: flex; align-items: baseline; gap: var(--space-4); min-width: 0; flex: 0 1 auto; }
+.board-event-bar-chev { display: inline-flex; flex: none; color: var(--text-secondary); transition: transform 0.15s ease; margin-left: 2px; }
+.board-event-bar-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-right: calc(var(--space-8) * -1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+}
+.board-event-bar-add .ico { width: 22px; height: 22px; }
+.board-event-bar-add:active { color: var(--accent); }
+.board-event-bar-btn { display: flex; align-items: center; gap: var(--space-8); width: 100%; min-height: 44px; padding: 0 var(--space-4); border: 0; border-radius: 0; background: none; color: var(--text-primary); text-align: left; border-bottom: 0; }
+#view > .board-event-bar { flex: none; padding: 0 var(--space-16); background: var(--page-bg); position: relative; z-index: 4; display: flex; align-items: center; gap: var(--space-4); border-bottom: 1px solid var(--border); }
+
+/* Message box "#": normal weight, the same size as the old plus. */
+.board-compose-hash-glyph { font-size: 20px; font-weight: 400; line-height: 1; font-family: inherit; }
+
+/* Event list as the compact view. */
+.board-event-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: var(--space-8) var(--space-16) var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+.board-event-row-main { display: flex; gap: var(--space-12); flex: 1; min-width: 0; padding: var(--space-8) var(--space-4) var(--space-8) var(--space-16); border: 0; background: none; color: var(--text-primary); text-align: left; align-items: flex-start; min-height: 60px; }
+.board-event-row-icon { display: inline-flex; flex: none; width: 20px; justify-content: center; color: var(--text-secondary); margin-top: 2px; }
+.board-event-row-copy { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.board-event-row-top { display: flex; align-items: baseline; gap: var(--space-8); min-width: 0; }
+.board-event-row-name {
+  -webkit-box-orient: vertical;
+  font-size: var(--fs-body);
+  font-weight: 650;
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  -webkit-line-clamp: unset;
+  display: block;
+}
+.board-event-row-when { flex: none; margin-left: auto; color: var(--text-secondary); font-size: var(--fs-meta); }
+.board-event-row-last {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+}
+.board-event-row-who { color: var(--text-primary); font-weight: 600; }
+.board-event-row.is-unread .board-event-row-last { color: var(--text-primary); font-weight: 600; }
+
+/* ── Three RSVP states, the same everywhere (boardEventRsvpState) ─────────
+   needs RSVP: shown by its control · going: normal · can't go: faded.
+   No colour: periwinkle stays for focus. */
+/* "Needs RSVP" is shown by the control itself (solid RSVP button on cards,
+   ✓ / ✕ in the list, a dot badge in the # picker) — not by bold text, which
+   read as "unread messages". */
+.board-event-row .board-event-row-name { font-weight: 600; }
+.board-event-row.is-rsvp-out,
+#chat-scroll .board-event-card.is-rsvp-out .board-event-box,
+.board-destination-option.is-rsvp-out,
+.board-event-head.is-rsvp-out .board-event-head-title,
+.msg-event-tag.is-out { opacity: 0.5; }
+/* Needs RSVP: ✓ (black, the primary action) and ✕, as in the event list.
+   Answered: quiet status text that opens the menu to change it. */
+.board-rsvp.is-ask { display: flex; gap: var(--space-8); flex: none; align-self: flex-start; align-items: center; margin-left: auto; }
+.board-rsvp.is-ask button { position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; width: 32px; height: 32px; min-height: 0; padding: 0; border: 1.5px solid var(--text-primary); border-radius: 50%; background: var(--page-bg); color: var(--text-primary); }
+.board-rsvp.is-ask button::after { content: ""; position: absolute; inset: -5px; }
+.board-rsvp.is-ask .board-rsvp-yes { background: var(--text-primary); color: var(--page-bg); }
+.board-rsvp.is-ask button .ico { width: 18px; height: 18px; }
+.board-rsvp.is-ask button:active { opacity: 0.75; }
+.board-event-card .board-rsvp-toggle.is-going, .board-event-head .board-rsvp-toggle.is-going,
+.board-event-card .board-rsvp-toggle.is-out, .board-event-head .board-rsvp-toggle.is-out,
+.board-event-card.is-message .board-rsvp-toggle.is-going { border-color: transparent; background: none; color: var(--text-secondary); padding: 0 var(--space-4); }
+.board-event-card .board-rsvp-toggle.is-going::before, .board-event-head .board-rsvp-toggle.is-going::before { content: none; }
+/* Titles wrap to two lines. */
+.board-event-card.is-message .board-event-title-text { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.25; }
+.board-event-card.is-message .board-event-title { align-items: flex-start; padding-top: 4px; }
+.board-event-card.is-message .board-event-top { align-items: flex-start; gap: var(--space-8); }
+
+/* Event list: one-tap answer for events that need it. */
+.board-event-row-answer { display: flex; gap: var(--space-8); flex: none; align-self: center; }
+.board-event-row-answer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1.5px solid var(--text-primary);
+  border-radius: 50%;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  position: relative;
+}
+.board-event-row-answer button::after { content: ""; position: absolute; inset: -5px; }
+.board-event-row-answer button .ico { width: 18px; height: 18px; }
+.board-event-row-answer button:active { background: var(--surface-3); }
+.board-event-row-answer button[data-event-nav-answer="yes"] { background: var(--text-primary); color: var(--page-bg); }
+.board-event-row-answer button[data-event-nav-answer="yes"]:active { opacity: 0.75; }
+/* Event list: the icon is a tile like the event icon in chat (tap the row →
+   focus that event in chat); › on the right opens the event page. */
+.board-event-row-main > .board-event-row-icon { display: grid; place-items: center; width: 36px; height: 36px; margin-top: 0; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-2); color: var(--text-primary); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06); }
+.board-event-row-main { align-items: center; }
+.board-event-row-main:active > .board-event-row-icon { background: var(--surface-3); }
+.board-event-row.is-focus .board-event-row-icon { border-color: var(--accent); color: var(--accent); }
+/* › is its own button (opens the event page), apart from the row (focus). */
+.board-event-row-open { position: relative; display: inline-flex; flex: none; align-self: center; align-items: center; justify-content: center; width: 36px; height: 36px; margin-left: var(--space-4); padding: 0; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-2); color: var(--text-primary); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06); }
+.board-event-row-open::after { content: ""; position: absolute; inset: -4px; }
+.board-event-row-open .ico { width: 18px; height: 18px; }
+.board-event-list-title { color: var(--text-primary); font-size: var(--fs-body-sm); font-weight: 700; }
+/* Head: "Upcoming", then "Tap icon to show in chat" (› opens the event). */
+#board-event-list .board-event-list-head { flex-direction: column; align-items: stretch; gap: 2px; padding: var(--space-8) var(--space-12) var(--space-4) var(--space-16); }
+.board-event-list-hints { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-8); color: var(--text-secondary); font-size: var(--fs-caption, 12px); font-weight: 400; }
+.board-event-row-open:active { background: var(--surface-3); }
+
+/* Event card: three rows — title + RSVP · date and time · place + Hide chat. */
+.board-event-card.is-message .board-event-facts { display: flex; margin: 0; color: var(--text-secondary); font-size: var(--fs-meta); padding-left: 0; flex-direction: column; align-items: stretch; gap: 1px; }
+.board-event-card.is-message .board-event-place-line { display: flex; align-items: baseline; gap: var(--space-8); min-height: 18px; }
+.board-event-card.is-message .board-event-place-line .board-event-meta-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-event-card.is-message .board-event-fold {
+  flex: none;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  font-weight: 400;
+  position: relative;
+}
+/* Taller touch area downward only, so it never covers the RSVP button above. */
+.board-event-card.is-message .board-event-fold::after { content: ""; position: absolute; inset: -4px -8px -14px; }
+
+/* # picker rows: the event's type icon (grey) instead of a coloured dot. */
+.board-destination-option-icon { display: inline-flex; flex: none; color: var(--text-secondary); }
+.board-destination-option-icon .ico { width: 18px; height: 18px; }
+
+/* RSVP badge on an event icon (# picker): empty ring = to answer, ✓ going, ✕ can't. */
+.board-event-icon-mark { position: relative; display: inline-flex; flex: none; }
+.board-rsvp-badge {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface-2);
+  background: var(--text-secondary);
+  color: var(--surface-2);
+  box-sizing: content-box;
+}
+.board-rsvp-badge .ico { width: 9px; height: 9px; stroke-width: 3; }
+/* Still to answer: an empty ring (like an unticked box beside ✓ and ✕). */
+.board-rsvp-badge.is-need { width: 10px; height: 10px; right: -4px; bottom: -3px; background: var(--surface-2); box-shadow: inset 0 0 0 1.75px var(--text-primary); }
+.board-rsvp-badge.is-going { background: var(--text-primary); }
+.board-destination-option.is-highlighted .board-rsvp-badge { border-color: var(--surface-3); }
+
+/* Archive by age: the board menu setting and the note at the top of All chat. */
+#chat-scroll .board-archive-note { display: flex; justify-content: center; margin: var(--space-8) 0 var(--space-16); }
+#chat-scroll .board-archive-note button { display: inline-flex; align-items: center; gap: var(--space-4); min-height: 32px; padding: 0 var(--space-12); border: 1px solid var(--border); border-radius: var(--radius-pill, 99px); background: none; color: var(--text-secondary); font: inherit; font-size: var(--fs-meta); }
+#chat-scroll .board-archive-note .ico { width: 14px; height: 14px; }
+.board-card-sheet-title { margin: 0 var(--space-16) var(--space-8); color: var(--text-secondary); font-size: var(--fs-meta); font-weight: 600; }
+/* Quick create: "Did you mean" known places (never required). */
+.board-from-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-8); margin-top: var(--space-4); }
+.board-from-suggest[hidden] { display: none; }
+.board-from-suggest-label { color: var(--text-secondary); font-size: var(--fs-meta); }
+.board-from-suggest-chip { display: inline-flex; align-items: center; gap: var(--space-4); min-height: 32px; max-width: 100%; padding: 0 var(--space-12) 0 var(--space-8); border: 1px solid var(--border); border-radius: var(--radius-pill, 99px); background: var(--surface-2); color: var(--text-primary); font: inherit; font-size: var(--fs-meta); }
+.board-from-suggest-chip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-from-suggest-chip .ico { flex: none; width: 14px; height: 14px; color: var(--text-secondary); }
+.board-from-suggest-chip:active { background: var(--surface-3); }
+
+/* Event card (All chat): a compact card — the title across the top, when and
+   where below, and RSVP at the bottom right (✓ / ✕, or the quiet status).
+   Waiting for your answer: a solid dark outline (black = needs you; not
+   dashed, which reads as a draft, and not purple, which is focus). */
+#chat-scroll .board-event-card.is-message .board-event-box {
+  max-width: 300px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title title" "facts rsvp";
+  column-gap: var(--space-8);
+  align-items: end;
+  padding: var(--space-8) var(--space-12);
+}
+#chat-scroll .board-event-card.is-message .board-event-top { display: contents; }
+#chat-scroll .board-event-card.is-message .board-event-title { grid-area: title; padding-top: 0; min-height: 0; margin-bottom: 2px; }
+#chat-scroll .board-event-card.is-message .board-event-facts { grid-area: facts; min-width: 0; }
+#chat-scroll .board-event-card.is-message .board-rsvp { grid-area: rsvp; align-self: end; margin-left: 0; }
+/* A hidden event's "Show chat": an underlined action at the top right, clear
+   of the RSVP status at the bottom right. */
+#chat-scroll .board-event-card.is-message .board-event-box.has-fold { grid-template-areas: "title fold" "facts rsvp"; }
+#chat-scroll .board-event-card.is-message .board-event-box.has-fold .board-event-fold {
+  grid-area: fold;
+  align-self: start;
+  justify-self: end;
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+#chat-scroll .board-event-card.is-message .board-event-box.has-fold .board-event-fold::after { inset: -10px -10px -8px -8px; }
+#chat-scroll .board-event-card.is-message.is-rsvp-need .board-event-box { border: 1.5px solid var(--text-primary); }
+/* Every card is raised a little, so it reads as something to tap. */
+#chat-scroll .board-event-card.is-message .board-event-box { box-shadow: 0 2px 8px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.05); }
+#chat-scroll .board-event-card.is-message .board-event-box:active { box-shadow: 0 1px 2px rgb(0 0 0 / 0.06); }
+
+/* Board menu switches: black, the app's own control (not the system blue). */
+.board-opt-line input[type="checkbox"][role="switch"] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 12px;
+  background: var(--border-strong, var(--border));
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.board-opt-line input[type="checkbox"][role="switch"]::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--page-bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: transform 0.15s ease;
+}
+.board-opt-line input[type="checkbox"][role="switch"]:checked { background: var(--text-primary); }
+.board-opt-line input[type="checkbox"][role="switch"]:checked::after { transform: translateX(16px); }
+.board-opt-line input[type="checkbox"][role="switch"]:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 2px; }
+
+/* Slim event bar: 32px tall; the + and the bar keep full-size tap areas. */
+#view > .board-event-bar .board-event-bar-btn { min-height: 32px; position: relative; }
+#view > .board-event-bar .board-event-bar-btn::after { content: ""; position: absolute; inset: -6px 0; }
+#view > .board-event-bar .board-event-bar-add { width: 32px; height: 32px; margin-right: calc(var(--space-4) * -1); position: relative; }
+#view > .board-event-bar .board-event-bar-add::after { content: ""; position: absolute; inset: -6px; }
+#view > .board-event-bar .board-event-bar-add .ico { width: 20px; height: 20px; }
+#view > .board-event-bar .board-event-bar-new-event { min-height: 28px; }
+#view > .board-event-bar.is-empty { min-height: 32px; }
+#view > .board-event-bar { margin-top: -4px; }
+/* Empty bar: the black "New event" pill would sit under the header's
+   bottom edge with the -4px pull-up, so it keeps its own height instead. */
+#view > .board-event-bar.is-empty { margin-top: 0; min-height: 0; padding-block: 2px; }
+#view > .board-event-bar.is-empty .board-event-bar-btn { min-height: 26px; }
+#view > .board-event-bar .board-event-bar-new-event { min-height: 26px; }
+.board-select-new-title { display: inline-flex; align-items: center; gap: var(--space-4); }
+.board-select-new-title .ico { width: 18px; height: 18px; }
+
+/* Focus bar: a band of page colour behind it (fading in at the top), so chat
+   scrolls out of sight under it like under the message box — never peeking
+   round the pill. */
+body.board-event-stepping .composer.is-board::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 64px;
+  background: linear-gradient(to top, var(--page-bg) 78%, color-mix(in srgb, var(--page-bg) 0%, transparent));
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Archive header: "Older than 2 weeks ⌄" on the right, its small menu. */
+.board-archive-age { display: inline-flex; flex: none; align-items: center; gap: 2px; margin-left: auto; min-height: var(--hit-min); padding: 0 var(--space-4); border: 0; background: none; color: var(--text-secondary); font: inherit; font-size: var(--fs-small); cursor: pointer; }
+.board-archive-age .ico { width: 16px; height: 16px; }
+.board-archive-age-menu { position: fixed; z-index: 60; min-width: 190px; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: 0 8px 24px rgb(0 0 0 / 0.14); }
+.board-archive-age-kicker { margin: var(--space-4) var(--space-8) var(--space-2); color: var(--text-secondary); font-size: var(--fs-meta); }
+.board-archive-age-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 40px; padding: 0 var(--space-8); border: 0; border-radius: var(--radius-control, 10px); background: none; color: var(--text-primary); font: inherit; font-size: var(--fs-body-sm); text-align: left; }
+.board-archive-age-menu button[aria-checked="true"] { font-weight: 600; }
+.board-archive-age-menu button .ico { width: 16px; height: 16px; }
+.board-archive-age-menu button:active { background: var(--surface-3); }
+/* Tag state: the floating panel stays above the drop-zone layer. */
+body.board-tagging .composer.is-board { z-index: 3; }
+
+/* Web links in chat and an event's place: underlined, in the text's own
+   colour (purple stays for focus); long links wrap instead of overflowing. */
+a.msg-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  overflow-wrap: anywhere;
+  -webkit-user-select: none;
+  user-select: none;
+}
+a.msg-link:active { opacity: 0.6; }
+.board-event-card.is-message .board-event-place-link {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  position: relative;
+}
+.board-event-card.is-message .board-event-place-link:active { color: var(--text-primary); }
+
+/* Quick create's options, left of Create: the board menu's black switch. */
+.board-from-foot { align-items: center; }
+.board-from-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-right: auto;
+  color: var(--text-secondary);
+  font-size: var(--fs-meta);
+  cursor: pointer;
+  position: relative;
+}
+.board-from-opt::after { content: ""; position: absolute; inset: -8px -6px; }
+.board-from-opt input[type="checkbox"][role="switch"] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--border-strong, var(--border));
+  transition: background-color 0.15s ease;
+}
+.board-from-opt input[type="checkbox"][role="switch"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--page-bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: transform 0.15s ease;
+}
+.board-from-opt input[type="checkbox"][role="switch"]:checked { background: var(--text-primary); }
+.board-from-opt input[type="checkbox"][role="switch"]:checked::after { transform: translateX(14px); }
+.board-from-opt:has(input:checked) { color: var(--text-primary); }
+
+/* "+" / New event with no chat yet: muted (tapping explains why). */
+#view > .board-event-bar .board-event-bar-new-event.is-muted { background: var(--surface-3, var(--border)); color: var(--text-muted, var(--text-secondary)); }
+#view > .board-event-bar .board-event-bar-add.is-muted { color: var(--text-muted, var(--text-secondary)); opacity: 0.55; }
+
+/* "edited" after a sender's name once they change a message's text. */
+#chat-scroll .msg-edited { color: var(--text-muted, var(--text-secondary)); font-size: var(--fs-meta); font-style: italic; }
+/* Draw at the end of the quick reactions: an icon, same size as the emoji. */
+.board-select-reacts .board-select-draw { color: var(--text-secondary); }
+.board-select-reacts .board-select-draw .ico { width: 20px; height: 20px; }

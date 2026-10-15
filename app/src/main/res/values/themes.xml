@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Phlip" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">#f5a93b</item>
+        <item name="colorPrimaryVariant">#b97f2c</item>
+        <item name="colorOnPrimary">#14120f</item>
+        <!-- Kill system/WebView blue wash when tapping full-screen create scrim. -->
+        <item name="colorControlHighlight">@android:color/transparent</item>
+        <item name="android:colorControlHighlight">@android:color/transparent</item>
+        <item name="android:statusBarColor">#ffffff</item>
+        <item name="android:navigationBarColor">#f8f9fa</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+    </style>
+
+    <!-- Cold-start splash: full card mark on white.
+         Android 12+ masks the animated icon to a circle — splash_logo insets
+         the full artwork (with PHLIP text) into that safe zone.
+         icon_preferred: always show the icon (needed so Studio / non-launcher
+         starts don't suppress it; also helps OEM launchers). -->
+    <style name="Theme.Phlip.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Phlip</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="android:windowSplashScreenBehavior" tools:targetApi="33">icon_preferred</item>
+        <!-- Compat / older APIs: full logo, no circular plate. -->
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+</resources>

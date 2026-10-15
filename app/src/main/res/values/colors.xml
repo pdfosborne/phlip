@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive-icon background: black plate for DARK logo safe-zone inset. -->
+    <color name="ic_launcher_background">#000000</color>
+    <!-- Cold-start splash fill - logo sits on this with a transparent icon plate. -->
+    <color name="splash_background">#FFFFFF</color>
+</resources>

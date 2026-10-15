@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+apply from: rootProject.file('gradle/android-library-defaults.gradle')
+
+android {
+    namespace 'app.phlip.server'
+
+    defaultConfig {
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all {
+                it.timeout = java.time.Duration.ofMinutes(2)
+                if (!project.hasProperty('includeOpenGaps')) {
+                    it.filter.excludeTestsMatching '*OpenSecurityGapsTest*'
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    api project(':core')
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.nanohttpd
+    implementation libs.nanohttpd.websocket
+    implementation libs.gson
+
+    testImplementation libs.junit
+    testImplementation libs.robolectric
+    testImplementation libs.okhttp
+
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
+}

@@ -1,0 +1,65 @@
+/* =============================================================================
+   Phlip component stylesheet: local browser demo chrome
+   Cascade order is managed by ../style.css -- do not import this file directly.
+   ============================================================================= */
+
+/* Compact demo card above the account chip in the left sidebar (not a top banner). */
+.phlip-demo-bar {
+  flex-shrink: 0;
+  margin: 0 10px 6px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: var(--card-bg, var(--bottle-2));
+  color: var(--text);
+  border: 1px solid var(--moss);
+  font-size: 12px;
+  font-weight: 600;
+  position: relative;
+  z-index: 5;
+}
+
+.phlip-demo-bar-copy {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-secondary);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.phlip-demo-bar-reset {
+  appearance: none;
+  flex-shrink: 0;
+  margin: 0;
+  border: 1px solid var(--border, var(--moss));
+  border-radius: 8px;
+  padding: 5px 10px;
+  background: var(--surface-2, var(--bottle-2));
+  color: var(--text, var(--chalk));
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.phlip-demo-bar-reset:focus-visible {
+  background: var(--bottle-2);
+  outline: 2px solid var(--marigold);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .phlip-demo-bar-reset:hover {
+    background: var(--bottle-2);
+    outline: 2px solid var(--marigold);
+    outline-offset: 2px;
+  }
+}
+
+.sidebar.side-overlay-open .phlip-demo-bar,
+.sidebar.is-reorder-mode .phlip-demo-bar {
+  opacity: 0.35;
+  pointer-events: none;
+}

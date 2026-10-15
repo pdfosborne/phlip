@@ -1,0 +1,25 @@
+cloudflared (Cloudflare Tunnel) — third-party component bundled with Phlip
+==========================================================================
+
+Phlip bundles the cloudflared binary (the Cloudflare Tunnel client) to provide
+optional "Public" hosting through a Cloudflare Tunnel.
+
+It ships inside the APK's native library directory as:
+
+    lib/arm64-v8a/libcloudflared.so
+
+This is an UNMODIFIED upstream build of cloudflared. The only change Phlip makes
+is the file NAME: it is renamed to "libcloudflared.so" so that Android extracts
+it and permits it to be executed via ProcessBuilder on modern Android versions.
+No changes are made to the cloudflared source or program behaviour.
+
+Copyright (C) Cloudflare, Inc.
+Licensed under the Apache License, Version 2.0.
+The full licence text is in this folder: cloudflared-LICENSE.txt
+Source: https://github.com/cloudflare/cloudflared
+
+The upstream cloudflared repository does not ship a NOTICE file, so there are no
+additional attribution notices to reproduce under Apache-2.0 section 4(d).
+
+Note: using Cloudflare Tunnel / Public hosting is additionally subject to
+Cloudflare's own terms of service for the account and domain you use.

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phlip</title>
+<meta name="description" content="Plan events and chat with your friend group — self-hosted and private.">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' http: https: ws: wss:; worker-src 'self'; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
+<link rel="icon" href="favicon.ico?v=20260727i" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=20260727i">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=20260727i">
+<link rel="shortcut icon" href="favicon.ico?v=20260727i">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=20260727i">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Phlip">
+<link rel="stylesheet" href="style.css?v=20260731al">
+<script src="theme-boot.js?v=20260726b"></script>
+</head>
+<body>
+
+<!-- main app: lands on the personal space immediately, no server required -->
+<div id="app" class="on">
+  <nav class="rail" id="rail" aria-label="Groups"></nav>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <h2 id="group-name"></h2>
+    </div>
+    <div class="sidebar-body">
+      <div class="sidebar-scroll" id="side-list"></div>
+    </div>
+    <!-- settings pinned to the bottom, above the host footer (outside the scroll) -->
+    <div class="side-settings" id="side-settings"></div>
+    <div class="host-foot">
+      <div class="host-foot-main">
+        <span class="pulse" aria-hidden="true"></span>hosted on <span class="who" id="host-name"></span><br>
+        <span class="online-count" id="online-count"></span>
+      </div>
+    </div>
+    <!-- Fills the left sidebar (not the right channel panel). -->
+    <div class="side-overlay" id="side-overlay" hidden aria-hidden="true">
+      <div class="side-overlay-head">
+        <button type="button" class="side-overlay-back" id="side-overlay-back" aria-label="Back"></button>
+        <h3 id="side-overlay-title">Server settings</h3>
+      </div>
+      <div class="side-overlay-body" id="side-overlay-body"></div>
+    </div>
+  </aside>
+
+  <aside class="channel-panel" id="channel-panel" aria-label="Channel details" aria-hidden="true">
+    <div class="channel-panel-head">
+      <button type="button" class="channel-panel-back" id="channel-panel-back" hidden aria-label="Back"></button>
+      <h3 id="channel-panel-title">Channel</h3>
+    </div>
+    <div class="channel-panel-body" id="channel-panel-body"></div>
+    <div class="channel-panel-actions" id="channel-panel-actions" hidden></div>
+    <div class="channel-panel-app" id="channel-panel-app"></div>
+  </aside>
+
+  <main class="main">
+    <header class="main-head">
+      <button type="button" class="back" id="btn-back" aria-label="Open servers and channels"></button>
+      <h3 id="view-title"></h3>
+      <span class="sub" id="view-sub"></span>
+      <button type="button" class="head-tutorial-btn" id="head-tutorial-btn" hidden>Tutorial</button>
+      <div class="head-actions" id="head-actions">
+        <button type="button" class="head-icon-btn" id="quick-manage" aria-label="Quick manage" title="Quick manage" hidden></button>
+        <button type="button" class="head-icon-btn" id="history-toggle" aria-label="Memories" title="Memories" hidden></button>
+        <button type="button" class="head-icon-btn" id="channel-info-btn" aria-label="Channel details" title="Channel details" hidden></button>
+      </div>
+    </header>
+    <div class="reconnect" id="reconnect">Connection to the host lost — retrying…</div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<script src="register-sw.js?v=20260727x"></script>
+<script src="crypto-lite.js?v=20260726b"></script>
+<script src="legal-docs.js?v=20260726b"></script>
+<script src="core.js?v=20260731y"></script>
+<script src="feel.js?v=20260731a"></script>
+<script src="crypto.js?v=20260726b"></script>
+<script src="net.js?v=20260731a"></script>
+<script src="handlers.js?v=20260730c"></script>
+<script src="personal.js?v=20260730c"></script>
+<script src="helpers.js?v=20260731b"></script>
+<script src="shares-live.js?v=20260731c"></script>
+<script src="render.js?v=20260731v"></script>
+<script src="channel.js?v=20260731ad"></script>
+<script src="host-settings.js?v=20260731a"></script>
+<script src="pitch.js?v=20260731e"></script>
+<script src="card-themes.js?v=20260731p"></script>
+<script src="card-back.js?v=20260731c"></script>
+<script src="sharecard.js?v=20260731t"></script>
+<script src="qr-lite.js?v=20260730a"></script>
+<script src="event-pass.js?v=20260731j"></script>
+<script src="hand.js?v=20260731ai"></script>
+<script src="onboarding.js?v=20260731z"></script>
+<script src="wireboot.js?v=20260731f"></script>
+<script src="supporter.js?v=20260731g"></script>
+<script src="microsite.js?v=20260727y"></script>
+</body>
+</html>

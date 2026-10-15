@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET"/> <!-- HTTPS/LAN host + Cloudflare API -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/> <!-- Keep CPU awake while HostService runs -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/> <!-- HostService as foreground -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/> <!-- dataSync FGS type for hosting -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/> <!-- Optional: keep host alive when plugged -->
+    <!-- Local network discovery (NSD/mDNS): hosts advertise each server, joiners browse
+         for them. ACCESS_WIFI_STATE/CHANGE_WIFI_MULTICAST_STATE are normal (no prompt);
+         NEARBY_WIFI_DEVICES is the Android 13+ runtime permission NsdManager.discoverServices
+         needs in place of location access — flagged neverForLocation since we only use it
+         for service discovery, never to derive position.
+         ACCESS_FINE_LOCATION is separate: Wi‑Fi SSID for Approved networks labels (and
+         LocalOnlyHotspot on API ≤32). SSID stays redacted without it when Nearby is
+         neverForLocation. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="31"/>
+    <!-- 022 / T4.3 — device-local calendar busy overlay (read only; never synced). -->
+    <uses-permission android:name="android.permission.READ_CALENDAR"/>
+    <!-- Optional Documents/Phlip markdown vault (Android 10 and below). -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"/>
+    <!-- Contacts / Camera / Storage not requested. Location is for Wi‑Fi SSID labels + hotspot. -->
+    <!-- Android 11+: allow resolving https VIEW intents (Cloudflare dashboard / Test link). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https"/>
+        </intent>
+        <!-- Prefer WhatsApp when sharing event-card images via the system share sheet. -->
+        <package android:name="com.whatsapp"/>
+        <package android:name="com.whatsapp.w4b"/>
+        <package android:name="com.google.android.gms"/>
+    </queries>
+
+    <application
+        android:name=".AshApp"
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:extractNativeLibs="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
+        android:theme="@style/Theme.Phlip">
+
+        <!-- Allows Macrobenchmark to trace release-like builds; no user data is exposed. -->
+        <profileable android:shell="true" tools:targetApi="29" />
+
+        <activity
+            android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Phlip.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- phlip://join?url=…&slug=… from share invites / hotspot -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="phlip" android:host="join"/>
+            </intent-filter>
+            <!-- App Links: personal invite https://phlipapp.com/j/<slug> -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="phlipapp.com"
+                    android:pathPrefix="/j/"/>
+            </intent-filter>
+            <!-- Offline event pass: phlip://p/<token> -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="phlip" android:host="p"/>
+            </intent-filter>
+            <!-- Open https/http server URL with Phlip → Add a server (URL autofilled) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:scheme="http"/>
+            </intent-filter>
+            <!-- Share invite text / URL / event pass into Phlip -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+            <!-- Select token → Process text → Phlip -->
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".MainActivity"
+            android:label="@string/action_settings"/>
+
+        <!-- HostService is declared in :server and merged in. -->
+
+        <!-- After Play / APK update: restore HostService if hosting was on. -->
+        <receiver
+            android:name=".PackageReplacedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- Serves the share-card PNG (cacheDir/shared/) to WhatsApp/the chooser as a
+             content:// URI — sharing an image via ACTION_SEND requires this. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
+
+    </application>
+
+</manifest>

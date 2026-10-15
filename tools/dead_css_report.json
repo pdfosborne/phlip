@@ -1,0 +1,12 @@
+[
+  {
+    "name": "ob-drag-attach-hint",
+    "sites": [
+      {
+        "file": "phlip-web/public/styles/90-card-share-onboarding.css",
+        "line": 493,
+        "selector": ".ob-drag-attach-hint"
+      }
+    ]
+  }
+]

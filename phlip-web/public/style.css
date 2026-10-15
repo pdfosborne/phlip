@@ -1,0 +1,18 @@
+/* Phlip client -- stylesheet manifest.
+ * This file imports the component modules in cascade order.
+ * Always edit component files under styles/ -- not this manifest.
+ * Bump the version string here and in index.html when publishing.
+ * (Cache bust: 20261011cleanup1)
+ * Keep styles/*.css entries in sync with the sw.js SHELL list. */
+
+@import url("styles/00-foundation.css?v=20261014fix2");
+@import url("styles/10-forms.css?v=20261011cleanup1");
+@import url("styles/20-app-shell.css?v=20261014fix2");
+@import url("styles/21-demo.css?v=20261010demo1");
+@import url("styles/30-main-events.css?v=20261011cleanup1");
+@import url("styles/35-timeline-view.css?v=20261011cleanup1");
+@import url("styles/36-create-draft.css?v=20261013clean1");
+@import url("styles/38-conversations.css?v=20261014fix2");
+@import url("styles/40-cards-deck.css?v=20261015v1");
+@import url("styles/50-event-detail.css?v=20261011cleanup1");
+@import url("styles/70-admin-settings.css?v=20261015v1");
