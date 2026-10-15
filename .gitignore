@@ -12,6 +12,8 @@ keystore.properties
 compile-out.txt
 *.log
 node_modules/
+__pycache__/
+*.pyc
 DerivedData/
 *.xcodeproj
 xcuserdata/
