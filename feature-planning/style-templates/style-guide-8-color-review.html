@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#Friends — Style Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface-1: #f4f3ee;
+    --surface-2: #ffffff;
+    --surface-3: #f8f9f9;
+    --surface-3-strong: #ebedef;
+    --page-bg: #f8f9fa;
+    --border: #e2e0d8;
+    --border-strong: #d3d1c7;
+    --text-primary: #1c1c1a;
+    --text-secondary: #6b6a63;
+    --text-muted: #7d7a71;
+
+    --periwinkle-base: #7371f7;
+    --periwinkle-tint-soft: rgba(115,113,247,0.10);
+    --periwinkle-tint: rgba(115,113,247,0.22);
+    --periwinkle-tint-strong: rgba(115,113,247,0.40);
+    --periwinkle-border: #5b52e0;
+    --periwinkle-text: #322a85;
+
+    --red-border: #c96b6b;
+    --red-text: #7a2f2f;
+    --action-base: #F2A93B;
+    --menu-button-base: #171246;
+
+    --notify-blue: #4F7CFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 20px 80px; background: var(--surface-1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text-primary);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .doc-sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 8px; }
+  .toc { font-size: 12px; color: var(--text-muted); margin: 0 0 36px; }
+  .toc span.done { color: var(--periwinkle-text); font-weight: 600; }
+
+  section { margin-bottom: 40px; }
+  h2 { font-size: 16px; margin: 0 0 4px; }
+  .section-desc { font-size: 13px; color: var(--text-secondary); margin: 0 0 18px; }
+
+  .group { margin-bottom: 24px; }
+  .group-label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 10px; }
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .swatch-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .swatch-fill { height: 56px; position: relative; }
+  .swatch-fill.checker {
+    background-image: linear-gradient(45deg, #e8e6de 25%, transparent 25%), linear-gradient(-45deg, #e8e6de 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e8e6de 75%), linear-gradient(-45deg, transparent 75%, #e8e6de 75%);
+    background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+  }
+  .swatch-fill.checker::after { content:''; position:absolute; inset:0; }
+  .swatch-info { padding: 8px 10px 10px; }
+  .swatch-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin: 0 0 2px; }
+  .swatch-value { font-size: 10px; color: var(--text-muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; margin: 0 0 4px; word-break: break-all; }
+  .swatch-usage { font-size: 11px; color: var(--text-secondary); line-height: 1.35; margin: 0; }
+  .flag { display: inline-block; font-size: 10px; font-weight: 600; color: var(--red-text); background: rgba(201,107,107,0.12); padding: 2px 6px; border-radius: 4px; margin-top: 6px; }
+
+  .contrast-note { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .contrast-note strong { color: var(--text-primary); }
+
+  .review-block {
+    background: #fff;
+    border: 1.5px solid var(--periwinkle-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 18px 0 24px;
+  }
+  .review-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--periwinkle-text);
+    background: var(--periwinkle-tint-soft);
+    border: 1px solid rgba(91,82,224,.22);
+    border-radius: 999px;
+    padding: 4px 8px;
+    margin-bottom: 10px;
+  }
+  .review-title { font-size: 14px; font-weight: 700; margin: 0 0 5px; }
+  .review-copy { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px; }
+  .review-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 10px; }
+  .review-swatch { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface-2); }
+  .review-swatch-color { height: 46px; border-bottom: 1px solid var(--border); }
+  .review-swatch-body { padding: 8px 10px 10px; }
+  .review-swatch-name { font-size: 11px; font-weight: 700; margin: 0 0 2px; color: var(--text-primary); }
+  .review-swatch-value { font-size: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--text-muted); margin: 0 0 4px; }
+  .review-swatch-note { font-size: 10px; line-height: 1.35; color: var(--text-secondary); margin: 0; }
+  .review-rules { margin: 14px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: 11px; line-height: 1.5; }
+  .review-rules li + li { margin-top: 4px; }
+
+  .type-specimen { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 18px; }
+  .specimen-lg { font-family: 'Atkinson Hyperlegible', sans-serif; font-size: 34px; font-weight: 700; line-height: 1.15; margin: 0 0 4px; }
+  .specimen-meta { font-size: 12px; color: var(--text-muted); margin: 0 0 16px; }
+  .specimen-alpha { font-family: 'Atkinson Hyperlegible', sans-serif; font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
+
+  .why-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 18px; }
+  .why-box strong { color: var(--text-primary); }
+
+  .weight-row { display: flex; gap: 10px; margin-bottom: 18px; }
+  .weight-card { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+  .weight-sample { font-family: 'Atkinson Hyperlegible', sans-serif; font-size: 26px; margin: 0 0 6px; }
+  .weight-label { font-size: 11px; color: var(--text-muted); }
+
+  .role-table { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .role-row { display: flex; align-items: center; gap: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .role-sample { font-family: 'Atkinson Hyperlegible', sans-serif; flex-shrink: 0; width: 130px; }
+  .role-info { flex: 1; }
+  .role-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin: 0 0 2px; }
+  .role-spec { font-size: 11px; color: var(--text-muted); font-family: ui-monospace, monospace; }
+
+  .numeral-demo-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .numeral-card { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .numeral-card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 8px; }
+  .numeral-card-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin: 0 0 12px; }
+  .numeral-sample-strong { font-family: 'Atkinson Hyperlegible', sans-serif; font-size: 16px; font-weight: 700; color: var(--periwinkle-text); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .numeral-sample-subtle { font-family: 'Atkinson Hyperlegible', sans-serif; font-size: 13px; color: var(--text-secondary); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+
+  .scale-row { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .scale-item { text-align: center; }
+  .scale-box { background: var(--periwinkle-tint-soft); border: 1.5px solid var(--periwinkle-border); }
+  .scale-label { font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+
+  .radius-row { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .radius-item { text-align: center; }
+  .radius-box { width: 56px; height: 56px; background: var(--surface-2); border: 1.5px solid var(--border-strong); }
+  .radius-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin: 6px 0 1px; }
+  .radius-usage { font-size: 10px; color: var(--text-muted); max-width: 90px; line-height: 1.3; }
+
+  .comp-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+  .comp-title { font-size: 14px; font-weight: 700; margin: 0 0 3px; font-family: 'Atkinson Hyperlegible', sans-serif; }
+  .comp-desc { font-size: 12px; color: var(--text-secondary); margin: 0 0 16px; line-height: 1.4; }
+  .comp-demo { background: var(--surface-1); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .comp-spec { font-size: 11px; color: var(--text-muted); font-family: ui-monospace, monospace; line-height: 1.6; }
+  .comp-spec b { color: var(--text-secondary); font-family: -apple-system, sans-serif; font-weight: 600; }
+
+  .motion-demo-wrap { background: var(--surface-1); border-radius: 10px; padding: 18px 16px; margin-bottom: 10px; }
+  .motion-status { font-size: 11px; color: var(--text-muted); margin: 0 0 12px; text-align: center; }
+  .mcard {
+    position: relative; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; overflow: hidden; display: grid; grid-template-columns: 44px 1fr 44px; gap: 10px;
+    font-family: 'Atkinson Hyperlegible', sans-serif; max-width: 320px; margin: 0 auto;
+  }
+  .mwash { position: absolute; inset: 0; background: var(--periwinkle-tint-soft); clip-path: circle(0% at var(--wx,100%) var(--wy,50%)); pointer-events: none; }
+  .micon { position: relative; z-index: 1; width: 44px; height: 44px; border: 1.5px solid var(--border-strong); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .mcontent { position: relative; z-index: 1; }
+  .mtitle { font-size: 15px; font-weight: 700; margin: 0 0 3px; }
+  .mby { font-size: 11px; color: var(--text-secondary); margin: 0 0 7px; }
+  .mloc { font-size: 12px; color: var(--text-secondary); margin: 0; }
+  .mloc b { color: var(--periwinkle-text); font-weight: 700; }
+  .myes-wrap { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: flex-end; padding-bottom: 2px; }
+  .myes {
+    width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--periwinkle-border);
+    background: var(--periwinkle-tint-soft); color: var(--periwinkle-text); cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .myes svg { width: 16px; height: 16px; overflow: visible; }
+  .myes path { fill: none; stroke: var(--periwinkle-text); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 20; stroke-dashoffset: 20; }
+  .mrow { display: none; align-items: center; gap: 10px; max-width: 320px; margin: 10px auto 0; }
+  .mtime { font-size: 11px; color: var(--text-secondary); width: 34px; text-align: right; }
+  .mminicard { width: 30px; height: 30px; border: 1.5px solid var(--border-strong); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; position: relative; overflow: hidden; }
+  .mminicard.reward::after { content: ''; position: absolute; top: 0; left: -30%; width: 30%; height: 100%; background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.9) 50%, transparent 100%); transform: skewX(-20deg); animation: mshine 750ms ease-out forwards; }
+  @keyframes mshine { from { left: -30%; } to { left: 130%; } }
+  .mrowtitle { font-size: 15px; font-weight: 500; }
+  .motion-replay { display: block; margin: 14px auto 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: 'Atkinson Hyperlegible', sans-serif; }
+
+  .stage-table { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .stage-row { display: flex; gap: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .stage-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--periwinkle-tint); color: var(--periwinkle-text); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .stage-info { flex: 1; }
+  .stage-name { font-size: 12px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px; }
+  .stage-detail { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+  .stage-ms { flex-shrink: 0; font-size: 10px; color: var(--text-muted); font-family: ui-monospace, monospace; white-space: nowrap; padding-top: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>#Friends — Style Guide</h1>
+  <p class="doc-sub">A living reference for the design system, built from the current working mockup.</p>
+  <p class="toc"><span class="done">1. Colour</span> · <span class="done">2. Typography</span> · <span class="done">3. Spacing &amp; radius</span> · <span class="done">4. Components</span> · <span class="done">5. Motion</span></p>
+
+  <section>
+    <h2>1. Colour</h2>
+    <p class="section-desc">Every colour in the app traces back to one of these tokens. Nothing should be hand-picked outside this set.</p>
+
+    <div class="group">
+      <p class="group-label">Surfaces</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-1);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">surface-1</p>
+            <p class="swatch-value">#f4f3ee</p>
+            <p class="swatch-usage">Warm inset/control surface — hover fills, chat bubbles, compose field. Not the main canvas.</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-2); border-bottom:1px solid var(--border);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">surface-2</p>
+            <p class="swatch-value">#ffffff</p>
+            <p class="swatch-usage">Cards, sheets, popups — the "raised" surface</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-3);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">surface-3</p>
+            <p class="swatch-value">#f8f9f9</p>
+            <p class="swatch-usage">Rail / large secondary chrome — Discord mobile light BACKGROUND_MOBILE_PRIMARY</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-3-strong);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">surface-3-strong</p>
+            <p class="swatch-value">#ebedef</p>
+            <p class="swatch-usage">Resting icon-button fill and selected channel — Discord mobile light BACKGROUND_SECONDARY_ALT</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--page-bg); border-bottom:1px solid var(--border);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">page-bg</p>
+            <p class="swatch-value">#f8f9fa</p>
+            <p class="swatch-usage">Root page / rolling-timeline canvas — cool off-white, distinct from raised white cards</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-block">
+      <div class="review-kicker">In the app for review</div>
+      <p class="review-title">Neutral surface refresh — glare reduction without changing the app’s character</p>
+      <p class="review-copy">
+        These tokens are now live in the app for evaluation. Brand colours, borders, and raised white cards are unchanged. The aim is to reduce large areas of pure white, remove the warmer grey cast from secondary surfaces, and preserve the existing periwinkle-led identity.
+      </p>
+
+      <div class="review-grid">
+        <div class="review-swatch">
+          <div class="review-swatch-color" style="background:#f4f3ee;"></div>
+          <div class="review-swatch-body">
+            <p class="review-swatch-name">surface-1 — kept</p>
+            <p class="review-swatch-value">#f4f3ee</p>
+            <p class="review-swatch-note">Warm inset/control surface only. Not used as the main canvas.</p>
+          </div>
+        </div>
+
+        <div class="review-swatch">
+          <div class="review-swatch-color" style="background:#f8f9fa;"></div>
+          <div class="review-swatch-body">
+            <p class="review-swatch-name">page-bg — applied</p>
+            <p class="review-swatch-value">#f8f9fa</p>
+            <p class="review-swatch-note">Very light cool off-white for the main app canvas. Intended to reduce glare while still reading as essentially white.</p>
+          </div>
+        </div>
+
+        <div class="review-swatch">
+          <div class="review-swatch-color" style="background:#f8f9f9;"></div>
+          <div class="review-swatch-body">
+            <p class="review-swatch-name">surface-3 — rail</p>
+            <p class="review-swatch-value">#f8f9f9</p>
+            <p class="review-swatch-note">Matched to Discord mobile light BACKGROUND_MOBILE_PRIMARY. Previous #f3f3f4 / #dddde0 pair read too heavy next to the cool canvas.</p>
+          </div>
+        </div>
+
+        <div class="review-swatch">
+          <div class="review-swatch-color" style="background:#ebedef;"></div>
+          <div class="review-swatch-body">
+            <p class="review-swatch-name">surface-3-strong — buttons</p>
+            <p class="review-swatch-value">#ebedef</p>
+            <p class="review-swatch-note">Matched to Discord mobile light BACKGROUND_SECONDARY_ALT (inputs / control fill). Selected-channel overlay on white is in this same range.</p>
+          </div>
+        </div>
+
+        <div class="review-swatch">
+          <div class="review-swatch-color" style="background:#ffffff;"></div>
+          <div class="review-swatch-body">
+            <p class="review-swatch-name">surface-2 — kept</p>
+            <p class="review-swatch-value">#ffffff</p>
+            <p class="review-swatch-note">Continue using pure white for raised cards, sheets and popups so elevation remains visible against the softer canvas.</p>
+          </div>
+        </div>
+      </div>
+
+      <ul class="review-rules">
+        <li><strong>Brand palette is unchanged.</strong> Periwinkle, notification blue and semantic red stay as they were.</li>
+        <li><strong>Surface-1 remains #f4f3ee.</strong> Keep it for warm inset/control surfaces, not as a catch-all background.</li>
+        <li><strong>Borders are still the previous warm tokens.</strong> If the cooler surfaces make #e2e0d8 / #d3d1c7 feel mismatched, that is a second pass — not part of this change.</li>
+        <li><strong>Validate in the rolling timeline, sidebar and bottom sheet.</strong> These are the highest-area surfaces and will reveal whether the cooler canvas improves comfort without making the app feel sterile.</li>
+      </ul>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Borders</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-2); display:flex; align-items:center; justify-content:center;">
+            <div style="width:70%; height:70%; border:1.5px solid var(--border); border-radius:8px;"></div>
+          </div>
+          <div class="swatch-info">
+            <p class="swatch-name">border</p>
+            <p class="swatch-value">#e2e0d8</p>
+            <p class="swatch-usage">Default card/row outline — quiet, resting state</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-2); display:flex; align-items:center; justify-content:center;">
+            <div style="width:70%; height:70%; border:1.5px solid var(--border-strong); border-radius:8px;"></div>
+          </div>
+          <div class="swatch-info">
+            <p class="swatch-name">border-strong</p>
+            <p class="swatch-value">#d3d1c7</p>
+            <p class="swatch-usage">Mini-card icon frame, pending-card border, X button</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Text</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:600; color:var(--text-primary);">Aa</div>
+          <div class="swatch-info">
+            <p class="swatch-name">text-primary</p>
+            <p class="swatch-value">#1c1c1a</p>
+            <p class="swatch-usage">Titles, unread event names, primary content</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:600; color:var(--text-secondary);">Aa</div>
+          <div class="swatch-info">
+            <p class="swatch-name">text-secondary</p>
+            <p class="swatch-value">#6b6a63</p>
+            <p class="swatch-usage">Default title weight, metadata labels, icons</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:600; color:var(--text-muted);">Aa</div>
+          <div class="swatch-info">
+            <p class="swatch-name">text-muted</p>
+            <p class="swatch-value">#7d7a71</p>
+            <p class="swatch-usage">Declined titles, faded/deprioritised text</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Brand — Periwinkle</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--periwinkle-base);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">periwinkle-base</p>
+            <p class="swatch-value">#7371f7</p>
+            <p class="swatch-usage">Confirm-flow accents, selected states, primary brand hue</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill checker" style="background-color: var(--periwinkle-tint-soft);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">periwinkle-tint-soft</p>
+            <p class="swatch-value">10% alpha</p>
+            <p class="swatch-usage">Host mini-card fill — barely-there wash</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill checker" style="background-color: var(--periwinkle-tint);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">periwinkle-tint</p>
+            <p class="swatch-value">22% alpha</p>
+            <p class="swatch-usage">RSVP dot active-state fill, avatar backgrounds</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill checker" style="background-color: var(--periwinkle-tint-strong);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">periwinkle-tint-strong</p>
+            <p class="swatch-value">40% alpha</p>
+            <p class="swatch-usage">Confirm-animation wash overlay</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--periwinkle-border);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">periwinkle-border</p>
+            <p class="swatch-value">#5b52e0</p>
+            <p class="swatch-usage">RSVP dot outline, selected week-day ring</p>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--periwinkle-text);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">periwinkle-text</p>
+            <p class="swatch-value">#322a85</p>
+            <p class="swatch-usage">Text-on-tint — conflict target highlight, active tab label, current-group emphasis inside My calendar</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Semantic — Red</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--red-border);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">red-border</p>
+            <p class="swatch-value">#c96b6b</p>
+            <p class="swatch-usage">Originally "declined" — no longer wired to anything visible</p>
+            <span class="flag">Currently unused</span>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--red-text);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">red-text</p>
+            <p class="swatch-value">#7a2f2f</p>
+            <p class="swatch-usage">Quick-menu "Delete" label, sheet action danger state</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Semantic — Action</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--action-base);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">action-base</p>
+            <p class="swatch-value">#F2A93B</p>
+            <p class="swatch-usage">Buttons that require action — deliberate user step, not a neutral control or brand accent.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Semantic — Menu buttons</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--menu-button-base);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">menu-button-base</p>
+            <p class="swatch-value">#171246</p>
+            <p class="swatch-usage">Menu action buttons and deeper navigation calls to action.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Semantic — Notification</p>
+      <div class="swatch-grid">
+        <div class="swatch-card">
+          <div class="swatch-fill" style="background:var(--notify-blue);"></div>
+          <div class="swatch-info">
+            <p class="swatch-name">notify-blue</p>
+            <p class="swatch-value">#4F7CFF</p>
+            <p class="swatch-usage">Unread chat indicator dot on event-line Chat and Host accessories</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contrast-note">
+      <strong>History on this one:</strong> notifications briefly shared the brand periwinkle rather than having their own colour, on the logic that one hue is simpler than two. That was reversed — <span style="color:var(--notify-blue); font-weight:600;">notify-blue</span> is now dedicated to unread chat only. The same dot appears on both Chat and Host accessories, so blue always means “new chat activity” rather than a generic change state.
+    </div>
+
+    <div class="contrast-note">
+      <strong>Open question for this section:</strong> <span style="color:var(--red-text);">red-border</span> is defined but nothing currently renders it — decline styling moved to neutral grey a while back. Worth deciding whether to formally retire it, or reserve it for a future destructive-state use (e.g. the quick-menu's Delete/Report items currently only use <span style="color:var(--red-text);">red-text</span> for label colour, not a filled/bordered state).
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Typography</h2>
+    <p class="section-desc">One typeface, used two different ways: plain and legible for reading, structured and emphasised for numbers.</p>
+
+    <div class="type-specimen">
+      <p class="specimen-lg">Atkinson Hyperlegible</p>
+      <p class="specimen-meta">Braille Institute · free, open · weights used: 400, 700</p>
+      <p class="specimen-alpha">Cinema night, Sci-fi double bill, 7:30pm, by Priya, Check conflicts</p>
+    </div>
+
+    <div class="why-box">
+      <strong>Why this font:</strong> chosen over conventional app-UI sans fonts (Inter, Plus Jakarta Sans) specifically because it was engineered from vision-science research rather than picked for visual style — "we obsess over clarity" is the actual brand story here, not an accessibility afterthought. The trade-off is a more clinical feel at rest, which is why colour, shape, and the numerals system below carry the warmth instead of the typeface itself.
+    </div>
+
+    <div class="weight-row">
+      <div class="weight-card">
+        <p class="weight-sample" style="font-weight:400;">Aa 19</p>
+        <p class="weight-label">400 — Regular<br>body text, secondary labels</p>
+      </div>
+      <div class="weight-card">
+        <p class="weight-sample" style="font-weight:700;">Aa 19</p>
+        <p class="weight-label">700 — Bold<br>titles, unread events, emphasis</p>
+      </div>
+    </div>
+
+    <p class="group-label">Text hierarchy</p>
+    <div class="role-table">
+      <div class="role-row">
+        <span class="role-sample" style="font-size:16px; font-weight:700; color:var(--text-primary);">Cinema night</span>
+        <div class="role-info"><p class="role-name">Primary</p><p class="role-spec">700 · text-primary · titles, unread events</p></div>
+      </div>
+      <div class="role-row">
+        <span class="role-sample" style="font-size:16px; font-weight:400; color:var(--text-secondary);">Bring a game</span>
+        <div class="role-info"><p class="role-name">Secondary</p><p class="role-spec">400 · text-secondary · default title weight, metadata</p></div>
+      </div>
+      <div class="role-row">
+        <span class="role-sample" style="font-size:11px; font-weight:400; color:var(--text-secondary);">by Priya</span>
+        <div class="role-info"><p class="role-name">Tertiary</p><p class="role-spec">11px · text-secondary, no underline · host attribution — same size/colour as "Check conflicts" but not a link</p></div>
+      </div>
+      <div class="role-row">
+        <span class="role-sample" style="font-size:11px; font-weight:400; color:var(--text-secondary); text-decoration:underline;">Check conflicts</span>
+        <div class="role-info"><p class="role-name">Tertiary — link</p><p class="role-spec">11px · text-secondary, underlined · the underline is what marks it tappable, nothing else differs from the row above</p></div>
+      </div>
+    </div>
+
+    <p class="group-label">Numerals — two tiers</p>
+    <p class="section-desc" style="margin-bottom:14px;">Every number gets tabular figures (so digits align and don't jitter), but only one context earns the full bold/coloured treatment.</p>
+    <div class="numeral-demo-row">
+      <div class="numeral-card">
+        <p class="numeral-card-label">Tier 1 — emphasised</p>
+        <p class="numeral-card-desc">Pending-card time only — the number you're actively deciding around.</p>
+        <span class="numeral-sample-strong">2pm–3pm</span>
+      </div>
+      <div class="numeral-card">
+        <p class="numeral-card-label">Tier 2 — structural</p>
+        <p class="numeral-card-desc">Everywhere else numbers appear — same tabular alignment, no colour/weight change.</p>
+        <span class="numeral-sample-subtle">6pm · 4 going</span>
+      </div>
+    </div>
+    <div class="contrast-note">
+      <strong>Deliberately excluded:</strong> once an event is confirmed or declined, its time label (<code style="font-family:ui-monospace,monospace;">.tl-time</code>) reverts to plain Tier 2 styling. The emphasis is for the moment of deciding, not for browsing things already settled — a resolved event doesn't need its time shouting anymore.
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Spacing &amp; radius</h2>
+    <p class="section-desc">Pulled directly from what's actually used in the mockup, not an idealized scale imposed after the fact.</p>
+
+    <p class="group-label">Spacing</p>
+    <div class="scale-row">
+      <div class="scale-item"><div class="scale-box" style="width:4px; height:24px;"></div><p class="scale-label">4px<br>icon+text</p></div>
+      <div class="scale-item"><div class="scale-box" style="width:6px; height:24px;"></div><p class="scale-label">6px<br>tight rows</p></div>
+      <div class="scale-item"><div class="scale-box" style="width:8px; height:24px;"></div><p class="scale-label">8px<br>related items</p></div>
+      <div class="scale-item"><div class="scale-box" style="width:10px; height:24px;"></div><p class="scale-label">10px<br>most gaps</p></div>
+      <div class="scale-item"><div class="scale-box" style="width:12px; height:24px;"></div><p class="scale-label">12px<br>row layout</p></div>
+      <div class="scale-item"><div class="scale-box" style="width:14px; height:24px;"></div><p class="scale-label">14px<br>list rhythm</p></div>
+      <div class="scale-item"><div class="scale-box" style="width:16px; height:24px;"></div><p class="scale-label">16px<br>sheet padding</p></div>
+    </div>
+    <div class="contrast-note" style="margin-bottom:24px;">
+      This isn't a strict 4px-multiple grid — 3px, 5px, and 11px all show up too, mostly on tight icon-to-text pairings and a couple of deliberate one-off gaps (e.g. the extra breathing room above "Check conflicts"). Worth deciding whether to tighten this into a formal 2px-based scale, or accept it as-is since nothing currently looks visibly inconsistent.
+    </div>
+
+    <p class="group-label">Radius</p>
+    <div class="radius-row">
+      <div class="radius-item"><div class="radius-box" style="border-radius:2px;"></div><p class="radius-name">2px</p><p class="radius-usage">Gem/diamond marks</p></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:8px;"></div><p class="radius-name">8px</p><p class="radius-usage">Mini-cards, icon frames, month-nav buttons</p></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:10px;"></div><p class="radius-name">10px</p><p class="radius-usage">Icon buttons (now/menu)</p></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:12px;"></div><p class="radius-name">12px</p><p class="radius-usage">Pending cards, resolved rows</p></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:14px;"></div><p class="radius-name">14px</p><p class="radius-usage">Sheets, popups, style-guide cards</p></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:16px;"></div><p class="radius-name">16px</p><p class="radius-usage">Week-strip pill</p></div>
+      <div class="radius-item"><div class="radius-box" style="border-radius:50%;"></div><p class="radius-name">50%</p><p class="radius-usage">Avatars, dots, RSVP circle, badges</p></div>
+    </div>
+    <div class="contrast-note">
+      <strong>Open question:</strong> six discrete radius values (2/8/10/12/14/16px) is more than most systems carry. 8 vs 10 vs 12 in particular are close enough that the difference is barely perceptible side by side — worth checking whether 10px (icon buttons) could just become 8px, collapsing to five values total.
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Components</h2>
+    <p class="section-desc">The core building blocks, as they actually behave today — including the states and limitations that came out of this whole process, not just the happy path.</p>
+
+    <div class="comp-card">
+      <p class="comp-title">Pending event card</p>
+      <p class="comp-desc">Full-width card for anything not yet responded to. Dismiss (X) sits as a quiet mark in the card's own top-right corner, separate from the larger Yes circle lower down.</p>
+      <div class="comp-demo">
+        <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:12px; position:relative; display:grid; grid-template-columns:44px 1fr 44px; gap:10px; font-family:'Atkinson Hyperlegible',sans-serif;">
+          <div style="position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-muted); opacity:0.62;">✕</div>
+          <div style="width:44px; height:44px; border:1.5px solid var(--border-strong); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;">☕</div>
+          <div>
+            <p style="font-size:16px; font-weight:700; margin:0 0 4px; padding-right:20px;">Work work</p>
+            <p style="font-size:11px; color:var(--text-secondary); margin:0 0 8px;">by Alex</p>
+            <p style="font-size:12px; color:var(--text-secondary); margin:0; font-variant-numeric:tabular-nums;">📍 Cafe &nbsp; 🕐 <span style="font-weight:700; color:var(--periwinkle-text); letter-spacing:0.02em;">2pm–3pm</span></p>
+            <span style="font-size:11px; color:var(--text-secondary); text-decoration:underline; display:inline-block; margin-top:11px;">Check conflicts</span>
+          </div>
+          <div style="display:flex; align-items:flex-end; justify-content:flex-end; padding-bottom:2px;">
+            <div style="width:40px; height:40px; border-radius:50%; border:1.5px solid var(--periwinkle-border); background:var(--periwinkle-tint-soft); color:var(--periwinkle-text); display:flex; align-items:center; justify-content:center; font-size:15px;">✓</div>
+          </div>
+        </div>
+      </div>
+      <p class="comp-spec"><b>Radius</b> 12px &nbsp; <b>X</b> 24px, corner-positioned dismiss mark, no border/circle &nbsp; <b>Yes</b> 40px, soft periwinkle fill at rest &nbsp; <b>Time</b> Tier-1 numeral treatment &nbsp; <b>Host text</b> tertiary, no avatar, no underline</p>
+    </div>
+
+    <div class="comp-card">
+      <p class="comp-title">Resolved event lines — accepted / hosted / declined</p>
+      <p class="comp-desc">Resolved events collapse to the bare minimum needed to answer one question at a glance. Accepted asks “what am I doing?”, declined asks “what did I choose not to do?”, and hosted adds only the live attendance cue needed to keep tabs on the event.</p>
+      <div class="comp-demo" style="display:flex; flex-direction:column; gap:14px; font-family:'Atkinson Hyperlegible',sans-serif;">
+
+        <div style="display:grid; grid-template-columns:52px 32px minmax(0,1fr) auto; align-items:center; gap:9px; min-width:0; padding:8px 6px 8px 0;">
+          <span style="font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; text-align:left;">2pm</span>
+          <div style="width:32px; height:32px; border:1.5px solid var(--border-strong); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;">☕</div>
+          <span style="font-size:15px; font-weight:400; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;">Work work</span>
+          <span style="width:24px; height:24px; position:relative; display:inline-flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:19px;">◯</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:52px 32px minmax(0,1fr) auto; align-items:center; gap:9px; min-width:0; padding:8px 6px 8px 0; background:var(--page-bg);">
+          <span style="font-size:11px; color:var(--text-muted); font-variant-numeric:tabular-nums; text-align:left;">5pm</span>
+          <div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:16px;">×</div>
+          <span style="font-size:15px; font-weight:400; color:var(--text-muted); text-align:left;">Home cooked</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:52px 32px minmax(0,1fr) auto; align-items:center; gap:9px; min-width:0; padding:8px 6px 8px 0;">
+          <span style="font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; text-align:left;">6pm</span>
+          <div style="width:32px; height:32px; border:1.5px solid var(--border-strong); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;">⚄</div>
+          <span style="font-size:15px; font-weight:400; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;">Bring a game</span>
+          <span style="width:24px; height:24px; position:relative; display:inline-flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:18px;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span style="position:absolute; left:-4px; bottom:-3px; min-width:14px; height:14px; padding:0 3px; border-radius:8px; background:#fff; color:var(--text-secondary); font-size:9px; font-weight:700; line-height:14px; text-align:center;">4</span>
+          </span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:52px 32px minmax(0,1fr) auto; align-items:center; gap:9px; min-width:0; padding:8px 6px 8px 0;">
+          <span style="font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; text-align:left;">7:30pm</span>
+          <div style="width:32px; height:32px; border:1.5px solid var(--text-primary); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;">🎬</div>
+          <span style="font-size:15px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;">Sci-fi double bill</span>
+          <span style="width:24px; height:24px; position:relative; display:inline-flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:18px;">◯
+            <span style="position:absolute; left:48%; top:50%; transform:translate(-50%,-50%); color:var(--text-secondary); font-size:7px; font-weight:700; letter-spacing:-0.55px;">12</span>
+            <span style="position:absolute; right:-1px; top:-1px; width:7px; height:7px; border-radius:50%; background:var(--notify-blue); box-shadow:0 0 0 2px #fff;"></span>
+          </span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:52px 32px minmax(0,1fr) auto; align-items:center; gap:9px; min-width:0; padding:8px 6px 8px 0;">
+          <span style="font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; text-align:left;">9pm</span>
+          <div style="width:32px; height:32px; border:1.5px solid var(--text-primary); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;">🎉</div>
+          <span style="font-size:15px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;">Drinks at mine</span>
+          <span style="width:24px; height:24px; position:relative; display:inline-flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:18px;"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span style="position:absolute; left:-4px; bottom:-3px; min-width:14px; height:14px; padding:0 3px; border-radius:8px; background:#fff; color:var(--text-secondary); font-size:9px; font-weight:700; line-height:14px; text-align:center;">5</span>
+            <span style="position:absolute; right:-1px; top:-1px; width:7px; height:7px; border-radius:50%; background:var(--notify-blue); box-shadow:0 0 0 2px #fff;"></span>
+          </span>
+        </div>
+      </div>
+      <p class="comp-spec"><b>Layout</b> shared grid for accepted and declined: fixed left-aligned time · fixed icon · left-aligned title · accessory &nbsp; <b>Accepted</b> white card + mini-card + Chat shortcut &nbsp; <b>Declined</b> timeline-canvas background, muted × + title, no extra metadata &nbsp; <b>Hosted</b> always keeps the people icon + going count visible on the right; no crown/host badge &nbsp; <b>Unread chat</b> blue dot always means new chat activity and bolds the event title &nbsp; <b>Chat count</b> total message count sits inside the bubble; 0 is hidden, 3+ digits collapse to an ellipsis &nbsp; <b>Host + unread</b> host indicator stays visible and simply gains the same blue unread dot &nbsp; <b>Tap row</b> opens the event sheet; the right-side shortcut opens Chat by default, including hosted events.</p>
+    </div>
+
+    <div class="comp-card">
+      <p class="comp-title">Focus state — depth, not colour</p>
+      <p class="comp-desc">Whichever row sits nearest the scroll focus line lifts slightly with a soft shadow. Chevrons were removed entirely — this is the only "currently active" signal left.</p>
+      <div class="comp-demo" style="font-family:'Atkinson Hyperlegible',sans-serif;">
+        <div style="background:var(--surface-2); border-radius:12px; padding:12px; transform:translateY(-3px); box-shadow:0 10px 20px -6px rgba(28,28,26,0.16), 0 2px 6px rgba(28,28,26,0.06); display:flex; align-items:center; gap:10px;">
+          <div style="width:30px; height:30px; border:1.5px solid var(--border-strong); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;">🎬</div>
+          <span style="font-size:15px;">Cinema night — currently focused</span>
+        </div>
+      </div>
+      <p class="comp-spec"><b>Lift</b> translateY(-3px) &nbsp; <b>Shadow</b> two-layer soft shadow &nbsp; <b>Requires</b> overflow:hidden removed from resting card state, or the shadow gets clipped</p>
+    </div>
+
+    <div class="comp-card">
+      <p class="comp-title">Bottom sheet — the only detail surface</p>
+      <p class="comp-desc">There is no separate detail page. Every event opens into this: summary line, a single overflow menu, then Chat / Attendance / Description as sub-tabs.</p>
+      <div class="comp-demo" style="font-family:'Atkinson Hyperlegible',sans-serif;">
+        <div style="background:var(--surface-2); border-radius:14px; overflow:hidden;">
+          <div style="padding:12px 16px 8px; font-size:16px; font-weight:700; border-bottom:0.5px solid var(--border);">Cinema night</div>
+          <div style="padding:8px 16px; display:flex; align-items:center; gap:14px; font-size:12px; color:var(--text-secondary); border-bottom:0.5px solid var(--border);">
+            <span style="flex:1;">📍 Vue &nbsp; 👤 by Jordan</span>
+            <div style="width:32px; height:32px; border:1px solid var(--border); border-radius:9px; display:flex; align-items:center; justify-content:center;">⋮</div>
+          </div>
+          <div style="display:flex; border-bottom:0.5px solid var(--border);">
+            <div style="flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:600; color:var(--periwinkle-text); border-bottom:2px solid var(--periwinkle-base);">Chat</div>
+            <div style="flex:1; text-align:center; padding:10px 0; font-size:13px; color:var(--text-secondary);">6 going</div>
+            <div style="flex:1; text-align:center; padding:10px 0; font-size:13px; color:var(--text-secondary);">Description</div>
+          </div>
+          <div style="padding:16px; font-size:12px; color:var(--text-muted);">Message thread renders here…</div>
+        </div>
+      </div>
+      <p class="comp-spec"><b>Overflow menu</b> single 32px button, replaces the earlier 7-icon actions row &nbsp; <b>Shares its option list</b> with the long-press quick menu below — one set of actions, two entry points, not two separate lists &nbsp; <b>Attendance tab label</b> shows live going-count, not a static word</p>
+    </div>
+
+    <div class="comp-card">
+      <p class="comp-title">Long-press quick menu</p>
+      <p class="comp-desc">A different, shorter action set than the sheet — appears on long-press anywhere on a row, centred, dismiss via backdrop.</p>
+      <div class="comp-demo" style="font-family:'Atkinson Hyperlegible',sans-serif; display:flex; justify-content:center;">
+        <div style="width:200px; background:var(--surface-2); border-radius:14px; box-shadow:0 8px 20px rgba(0,0,0,0.12); padding:6px;">
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px;">✓ Change RSVP</div>
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px; color:var(--text-secondary);">🖼️ Share image</div>
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px; color:var(--text-secondary);">📤 Share</div>
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px; color:var(--text-secondary);">✏️ Edit</div>
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px; color:var(--text-secondary);">⭐ Save as routine</div>
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px; color:var(--text-secondary);">🚩 Report</div>
+          <div style="padding:9px 10px; font-size:13px; display:flex; align-items:center; gap:8px; color:var(--red-text);">🗑️ Delete</div>
+        </div>
+      </div>
+      <p class="comp-spec"><b>Change RSVP</b> only works on the 3 live-interactive events — static rows fall back to an honest alert rather than faking it</p>
+    </div>
+
+    <div class="comp-card">
+      <p class="comp-title">Calendar dropdown — compact / expanded</p>
+      <p class="comp-desc">Replaced the week-pill entirely (see the "Deliberately excluded" note below). This dropdown is the date-navigation surface for the current group timeline; the separate My calendar sidebar is the user’s cross-group confirmed schedule. Two states: a quiet dot/line overview, and an expanded view showing actual event names. Toggle the chevron below to see both.</p>
+      <div class="comp-demo" style="padding:16px 14px;">
+        <div id="cal-spec-weekdays" style="display:grid; grid-template-columns:repeat(7,1fr); text-align:center; margin-bottom:4px;">
+          <span style="font-size:11px; color:var(--text-secondary);">M</span><span style="font-size:11px; color:var(--text-secondary);">T</span><span style="font-size:11px; color:var(--text-secondary);">W</span><span style="font-size:11px; color:var(--text-secondary);">T</span><span style="font-size:11px; color:var(--text-secondary);">F</span><span style="font-size:11px; color:var(--text-secondary);">S</span><span style="font-size:11px; color:var(--text-secondary);">S</span>
+        </div>
+        <div id="cal-spec-days" style="display:grid; grid-template-columns:repeat(7,1fr);"></div>
+        <button type="button" id="cal-spec-toggle" style="display:flex; align-items:center; justify-content:center; width:100%; height:32px; margin-top:6px; border:0; background:none; color:var(--text-muted); cursor:pointer; font-size:14px; font-family:inherit;">⌄</button>
+      </div>
+      <p class="comp-spec">
+        <b>Purple meaning</b> dark purple dot/line/bar = at least one <em>accepted</em> event that day — not tied to which date is selected, same signal the timeline itself uses &nbsp;
+        <b>Week-boundary bug (real one, not cosmetic)</b> grid items default to <code style="font-family:ui-monospace,monospace;">min-width:auto</code>, which lets unbroken event-label text force a column wider than its fair 1/7 share even with <code style="font-family:ui-monospace,monospace;">overflow:hidden</code> set — <code style="font-family:ui-monospace,monospace;">min-width:0</code> on the cell is the actual fix &nbsp;
+        <b>Multi-day continuity</b> a bar only gets rounded corners at the event's true start/end — a row-wrap edge (Mon/Sun) stays square, so it reads as "cut off, continues" rather than a second separate event &nbsp;
+        <b>Gap-bridging</b> cells carry 1px horizontal padding for the date number, which left a visible 2px seam between adjacent bar segments — fixed with <code style="font-family:ui-monospace,monospace;">margin:-1px</code> on the bar by default, overridden back to a positive inset only on true boundaries
+      </p>
+    </div>
+
+
+    <div class="comp-card">
+      <p class="comp-title">My calendar sidebar — cross-group schedule + timeline bridge</p>
+      <p class="comp-desc">A narrow right-hand comparison rail answering “what am I signed up to?” across every group. The month is always visible; selecting a date updates a compact read-only agenda below it. Cross-group events never navigate away from the current group. One predictable “Show in timeline” link moves the current group timeline to the selected date. The sidebar also supports adding lightweight personal commitments in place, without pulling the user away from a group decision.</p>
+
+      <div class="comp-demo" style="padding:14px; overflow:hidden;">
+        <div style="width:min(100%,320px); margin-left:auto; background:var(--surface-2); font-family:'Atkinson Hyperlegible',sans-serif;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <strong style="font-size:18px;">My calendar</strong>
+            <span style="font-size:18px; color:var(--text-secondary); line-height:1;">×</span>
+          </div>
+
+          <div style="border:1px solid var(--border); border-radius:14px; padding:12px 10px 10px; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:0 2px 10px;">
+              <strong style="font-size:14px;">September 2026</strong>
+              <div style="display:flex; gap:16px; color:var(--text-secondary); font-size:18px;"><span>‹</span><span>›</span></div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(7,1fr); text-align:center; row-gap:7px; align-items:start;">
+              <span style="font-size:10px; color:var(--text-secondary);">M</span><span style="font-size:10px; color:var(--text-secondary);">T</span><span style="font-size:10px; color:var(--text-secondary);">W</span><span style="font-size:10px; color:var(--text-secondary);">T</span><span style="font-size:10px; color:var(--text-secondary);">F</span><span style="font-size:10px; color:var(--text-secondary);">S</span><span style="font-size:10px; color:var(--text-secondary);">S</span>
+              <span style="font-size:12px; color:var(--text-muted); opacity:.45;">31</span><span style="font-size:12px;">1</span><span style="font-size:12px;">2</span><span style="font-size:12px;">3</span><span style="font-size:12px;">4</span><span style="font-size:12px;">5</span><span style="font-size:12px;">6</span>
+              <span style="font-size:12px;">7</span><span style="font-size:12px;">8</span><span style="font-size:12px;">9</span><span style="font-size:12px;">10</span><span style="font-size:12px;">11</span><span style="font-size:12px;">12</span><span style="font-size:12px;">13</span>
+              <span style="font-size:12px;">14</span><span style="font-size:12px;">15</span><span style="font-size:12px;">16</span><span style="font-size:12px;">17</span><span style="font-size:12px;">18</span><span style="font-size:12px;">19</span><span style="font-size:12px;">20</span>
+              <span style="font-size:12px;">21</span><span style="font-size:12px;">22</span><span style="font-size:12px;">23</span>
+              <span style="min-height:31px; border-radius:9px; background:var(--periwinkle-tint-soft); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--periwinkle-text);">24<span style="width:5px; height:5px; border-radius:50%; background:var(--periwinkle-border); margin-top:3px;"></span></span>
+              <span style="display:flex; flex-direction:column; align-items:center; font-size:12px;">25<span style="width:5px; height:5px; border-radius:50%; background:var(--periwinkle-border); margin-top:4px;"></span></span>
+              <span style="display:flex; flex-direction:column; align-items:center; font-size:12px;">26<span style="width:5px; height:5px; border-radius:50%; background:var(--periwinkle-border); margin-top:4px;"></span></span>
+              <span style="display:flex; flex-direction:column; align-items:center; font-size:12px;">27<span style="width:5px; height:5px; border-radius:50%; background:var(--periwinkle-border); margin-top:4px;"></span></span>
+              <span style="display:flex; flex-direction:column; align-items:center; font-size:12px;">28<span style="width:5px; height:5px; border-radius:50%; background:var(--periwinkle-border); margin-top:4px;"></span></span>
+              <span style="font-size:12px;">29</span><span style="font-size:12px;">30</span><span style="font-size:12px; color:var(--text-muted); opacity:.45;">1</span><span style="font-size:12px; color:var(--text-muted); opacity:.45;">2</span><span style="font-size:12px; color:var(--text-muted); opacity:.45;">3</span><span style="font-size:12px; color:var(--text-muted); opacity:.45;">4</span>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:0 2px 9px; border-bottom:1px solid var(--border);">
+            <strong style="font-size:14px; white-space:nowrap;">Thu 24 September</strong>
+            <span style="font-size:11px; font-weight:700; color:var(--periwinkle-text); text-decoration:underline; white-space:nowrap;">Show in timeline</span>
+          </div>
+
+          <div style="padding-top:11px;">
+            <div style="display:grid; grid-template-columns:62px 14px minmax(0,1fr); min-height:46px;">
+              <div style="font-size:11px; color:var(--text-secondary); text-align:right; padding:2px 8px 0 0; font-variant-numeric:tabular-nums;">9am</div>
+              <div style="position:relative; display:flex; justify-content:center;"><span style="position:absolute; top:7px; bottom:-2px; width:1px; background:var(--border);"></span><span style="position:relative; margin-top:5px; width:7px; height:7px; border-radius:50%; background:var(--border-strong);"></span></div>
+              <div style="min-width:0; padding-left:7px;">
+                <div style="display:flex; align-items:baseline; gap:4px; min-width:0; white-space:nowrap;">
+                  <strong style="font-size:13px; overflow:hidden; text-overflow:ellipsis;">Dentist</strong>
+                  <span style="font-size:11px; color:var(--text-secondary); flex-shrink:0;">· until 9:45am</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted);">#Family</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:62px 14px minmax(0,1fr); min-height:46px;">
+              <div style="font-size:11px; color:var(--text-secondary); text-align:right; padding:2px 8px 0 0; font-variant-numeric:tabular-nums;">1:30pm</div>
+              <div style="position:relative; display:flex; justify-content:center;"><span style="position:absolute; top:7px; bottom:-2px; width:1px; background:var(--border);"></span><span style="position:relative; margin-top:5px; width:7px; height:7px; border-radius:50%; background:var(--border-strong);"></span></div>
+              <div style="min-width:0; padding-left:7px;">
+                <div style="display:flex; align-items:baseline; gap:4px; min-width:0; white-space:nowrap;">
+                  <strong style="font-size:13px; overflow:hidden; text-overflow:ellipsis;">Standup</strong>
+                  <span style="font-size:11px; color:var(--text-secondary); flex-shrink:0;">· until 2:15pm</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted);">#Work</div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:62px 14px minmax(0,1fr); min-height:46px;">
+              <div style="font-size:11px; color:var(--text-secondary); text-align:right; padding:2px 8px 0 0; font-variant-numeric:tabular-nums;">6:30pm</div>
+              <div style="position:relative; display:flex; justify-content:center;"><span style="position:absolute; top:7px; bottom:15px; width:1px; background:var(--border);"></span><span style="position:relative; margin-top:5px; width:7px; height:7px; border-radius:50%; background:var(--periwinkle-border);"></span></div>
+              <div style="min-width:0; padding-left:7px; color:var(--periwinkle-text);">
+                <div style="display:flex; align-items:baseline; gap:4px; min-width:0; white-space:nowrap;">
+                  <strong style="font-size:13px; overflow:hidden; text-overflow:ellipsis;">Dinner at Jess's</strong>
+                  <span style="font-size:11px; flex-shrink:0;">· until 8:30pm</span>
+                </div>
+                <div style="font-size:11px;">#Friends</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div style="margin:12px 0 0; border-top:1px solid var(--border); padding-top:12px;">
+        <p class="group-label" style="margin-bottom:7px;">Inline personal-event creation</p>
+        <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:10px; padding:9px; font-family:'Atkinson Hyperlegible',sans-serif;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;">
+            <strong style="font-size:11px;">Add personal event</strong>
+            <span style="font-size:9.5px; color:var(--text-muted);">Thu 24 September</span>
+          </div>
+          <div style="background:var(--surface-2); border:1px solid var(--border-strong); border-radius:7px; padding:6px 7px; font-size:11px;">Dinner with parents</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
+            <div style="background:var(--surface-2); border:1px solid var(--border-strong); border-radius:7px; padding:6px 7px; font-size:11px;">6:00pm</div>
+            <div style="background:var(--surface-2); border:1px solid var(--border-strong); border-radius:7px; padding:6px 7px; font-size:11px;">8:00pm</div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
+            <span style="border:1px solid var(--border); background:var(--surface-2); border-radius:7px; padding:6px 9px; font-size:10.5px; color:var(--text-secondary);">Cancel</span>
+            <span style="border:1px solid var(--periwinkle-border); background:var(--periwinkle-tint-soft); border-radius:7px; padding:6px 9px; font-size:10.5px; font-weight:600; color:var(--periwinkle-text);">Save</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="comp-spec"><b>Purpose</b> cross-group reference surface, not a second navigation hierarchy &nbsp; <b>Width</b> narrow comparison rail on larger screens; wider overlay on small screens where side-by-side comparison stops being useful &nbsp; <b>Calendar</b> always visible; selected date uses soft periwinkle fill, confirmed-event dates use the persistent purple dot &nbsp; <b>Agenda</b> read-only, chronological, two rows per item &nbsp; <b>Row 1</b> start time lives in the left rail; content reads “Title · until end time”; title truncates first so the end time remains visible &nbsp; <b>Row 2</b> source group only, with a deliberately tight gap to row 1 &nbsp; <b>Time rail</b> wide enough for full labels such as 1:30pm / 4:30pm; vertical rule + dot provide chronology without proportional dead space &nbsp; <b>Current group</b> matching events use purple dot + purple title/source; still read-only &nbsp; <b>Navigation</b> “Show in timeline” is the single bridge back to the current group and moves that timeline to the selected date &nbsp; <b>No confirmation checks</b> presence in My calendar already implies confirmed &nbsp; <b>Personal planning</b> “Add personal event” opens a lightweight inline form for title, start, end and optional note; selected date is inherited from the calendar; save writes to the user’s default personal-events channel but the UI labels the source simply “My plans” &nbsp; <b>No context switch</b> saving keeps the user in the sidebar and immediately updates the agenda / active conflict check</p>
+
+      <div class="contrast-note" style="margin-top:12px;"><strong>Conflict-check mode:</strong> “Check conflicts” on a pending RSVP opens this same sidebar at the event’s date/time and temporarily switches the agenda area to a proportional day view. The proposed event is previewed in its actual slot, using a selected/outlined periwinkle treatment rather than the confirmed state. “Add personal event” remains available here: if the user remembers an off-app commitment while deciding, they can jot it down and the proportional conflict view updates immediately. Normal My calendar remains dense and non-proportional so it answers “what am I signed up to?” efficiently.</div>
+    </div>
+
+    </section>
+
+<script>
+(function(){
+  var toggle = document.getElementById('cal-spec-toggle');
+  var daysEl = document.getElementById('cal-spec-days');
+  if(!toggle || !daysEl) return;
+  var expanded = false;
+  var days = [
+    {n:21}, {n:22}, {n:23}, {n:24, accepted:true, titles:['Cardio group','Work work']},
+    {n:25}, {n:26, accepted:true, titles:['Farmers market','Picnic']}, {n:27, seg:'start'},
+    {n:28, seg:'row'}, {n:29, seg:'end'}, {n:30}, {n:1,muted:true}, {n:2,muted:true}, {n:3,muted:true}, {n:4,muted:true}
+  ];
+  function render(){
+    daysEl.innerHTML = days.map(function(d){
+      var isSeg = !!d.seg;
+      var roundStart = d.seg === 'start', roundEnd = d.seg === 'end';
+      var barHtml = '';
+      if(isSeg){
+        var barStyle = expanded
+          ? 'display:flex; align-items:center; height:22px; font-size:10px; color:#fff; background:var(--periwinkle-border); padding:0 5px; white-space:nowrap; overflow:hidden; margin:10px ' + (roundEnd?'2px':'-1px') + ' 0 ' + (roundStart?'2px':'-1px') + '; border-radius:' + (roundStart?'4px 0 0 4px':'') + (roundEnd?'0 4px 4px 0':'') + ';' + (!roundStart && !roundEnd ? 'border-radius:0;' : '')
+          : 'display:block; height:4px; background:var(--periwinkle-border); margin:6px ' + (roundEnd?'8px':'-1px') + ' 0 ' + (roundStart?'8px':'-1px') + '; border-radius:' + (roundStart?'3px 0 0 3px':'') + (roundEnd?'0 3px 3px 0':'') + ';' + (!roundStart && !roundEnd ? 'border-radius:0;' : '');
+        barHtml = '<span style="' + barStyle + '">' + (expanded && (roundStart || d.seg==='row') ? 'Cornwall trip' : '') + '</span>';
+      }
+      var lowerHtml = '';
+      if(!expanded && d.titles){
+        lowerHtml = '<span style="width:6px; height:6px; border-radius:50%; margin-top:6px; background:' + (d.accepted ? 'var(--periwinkle-border)' : 'var(--text-muted)') + ';"></span>';
+      } else if(expanded && d.titles){
+        lowerHtml = '<div style="display:flex; flex-direction:column; gap:3px; width:100%; margin-top:10px; align-self:flex-start;">' +
+          d.titles.map(function(t){ return '<span style="font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left;">' + t + '</span>'; }).join('') + '</div>';
+      }
+      return '<div style="min-width:0; height:' + (expanded ? 'auto' : '34px') + '; min-height:' + (expanded ? '58px' : '34px') + '; display:flex; flex-direction:column; align-items:center; padding:3px 1px 0; border-radius:9px; ' +
+        (d.n===24 ? 'background:var(--periwinkle-tint-soft);' : '') + '">' +
+        '<span style="font-size:14px; color:' + (d.muted?'var(--text-muted)':'var(--text-primary)') + '; opacity:' + (d.muted?'.45':'1') + '; font-weight:' + (d.n===24?'700':'400') + ';">' + d.n + '</span>' +
+        barHtml + lowerHtml + '</div>';
+    }).join('');
+  }
+  toggle.addEventListener('click', function(){
+    expanded = !expanded;
+    toggle.textContent = expanded ? '⌃' : '⌄';
+    render();
+  });
+  render();
+})();
+</script>
+
+  <section>
+    <h2>5. Motion — the RSVP confirm</h2>
+    <p class="section-desc">Four stages — anticipation, reward, transition, celebration — landing in under 1.5s total, with the row already interactive again well before that. Built from research into successful micro-interaction design, then debugged against several real continuity bugs that only showed up once it was live.</p>
+
+    <div class="motion-demo-wrap">
+      <p class="motion-status" id="motionStatus">Tap the circle</p>
+      <div class="mcard" id="mcard">
+        <div class="mwash" id="mwash"></div>
+        <div class="micon">☕</div>
+        <div class="mcontent">
+          <p class="mtitle">Work work</p>
+          <p class="mby">by Alex</p>
+          <p class="mloc">📍 Cafe &nbsp; 🕐 <b>2pm–3pm</b></p>
+        </div>
+        <div class="myes-wrap">
+          <button type="button" class="myes" id="myesBtn" aria-label="Yes, going">
+            <svg viewBox="0 0 24 24"><path id="mcheck" d="M5 13l4 4L19 7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mrow" id="mrow">
+        <span class="mtime">2pm</span>
+        <div class="mminicard" id="mminicard">☕</div>
+        <span class="mrowtitle">Work work</span>
+      </div>
+      <button type="button" class="motion-replay" id="motionReplay">↺ Reset &amp; replay</button>
+    </div>
+
+    <div class="stage-table">
+      <div class="stage-row">
+        <div class="stage-num">1</div>
+        <div class="stage-info"><p class="stage-name">Anticipation</p><p class="stage-detail">Native <code>:active</code> press — the circle squashes to 0.93 scale. No JS, no delay; the browser's own press state does this for free.</p></div>
+        <div class="stage-ms">~80ms</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-num">2</div>
+        <div class="stage-info"><p class="stage-name">Reward</p><p class="stage-detail">A flat periwinkle wash floods outward from the button's actual computed position (not a fixed corner) via an expanding <code>clip-path</code> circle — a genuine even fill, not a fading gradient. Checkmark draws on via SVG stroke animation. A real two-tone chime plays (Web Audio, 660Hz→880Hz).</p></div>
+        <div class="stage-ms">440ms</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-num">3</div>
+        <div class="stage-info"><p class="stage-name">Transition</p><p class="stage-detail">Card shrinks into the mini-card while the external time label expands open in the same breath — the growing time label is what physically pushes the icon rightward, via ordinary flexbox, not manual position math. The shrinking box carries the wash's periwinkle colour forward on its own border/fill, so the colour never disappears mid-motion. The icon itself doesn't appear until the box has fully settled — no intermediate position for it to jump from.</p></div>
+        <div class="stage-ms">520ms</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-num">4</div>
+        <div class="stage-info"><p class="stage-name">Celebration — "minting"</p><p class="stage-detail">A white glint sweeps once across the settled icon, synced to start at the same instant the periwinkle colour fades back to neutral — one combined "sealing" moment, not two sequential ones. A confetti/particle version was prototyped and deliberately dropped: it read as generic "fun," where the glint reads as "this now has value" — a closer match to the brand's exclusivity note than confetti ever was.</p></div>
+        <div class="stage-ms">480ms, overlapping</div>
+      </div>
+    </div>
+
+    <div class="contrast-note">
+      <strong>Real bugs found building this, worth remembering:</strong> (1) a radial gradient was tried first for the wash — it fades to transparent before reaching the edges, so it can never actually <em>fill</em> the card evenly; switched to a flat colour revealed by the clip-path instead. (2) Hiding the wash only <em>after</em> the shrink began let its clip-path keep re-interpreting against the shrinking box's changing size, reading as a second uncontrolled swipe — fixed by hiding it the instant the shrink starts. (3) Revealing the icon partway through the shrink and centring it there meant it kept "chasing" the box as it continued resizing — fixed by not revealing the icon at all until the box has fully settled. (4) The final mini-card sits inside <code>.event-row-compact</code>'s own 6px left padding, which the shrinking placeholder didn't account for — fixed by animating a matching 6px <code>margin-left</code> into the shrink itself, rather than letting the two layouts disagree at the handoff.
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
+
+<script>
+(function(){
+  var card = document.getElementById('mcard');
+  var wash = document.getElementById('mwash');
+  var yesBtn = document.getElementById('myesBtn');
+  var checkPath = document.getElementById('mcheck');
+  var row = document.getElementById('mrow');
+  var miniCard = document.getElementById('mminicard');
+  var status = document.getElementById('motionStatus');
+  var replay = document.getElementById('motionReplay');
+  var done = false;
+
+  function playChime(){
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [660, 880].forEach(function(freq, i){
+        var osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        var start = ctx.currentTime + i * 0.07;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.1, start + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.16);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start); osc.stop(start + 0.18);
+      });
+    } catch(e){}
+  }
+
+  yesBtn.addEventListener('click', function(){
+    if(done) return;
+    done = true;
+    var cardRect = card.getBoundingClientRect();
+    var btnRect = yesBtn.getBoundingClientRect();
+    wash.style.setProperty('--wx', (((btnRect.left + btnRect.width/2 - cardRect.left) / cardRect.width) * 100) + '%');
+    wash.style.setProperty('--wy', (((btnRect.top + btnRect.height/2 - cardRect.top) / cardRect.height) * 100) + '%');
+
+    status.textContent = 'Reward — wash + checkmark + chime';
+    wash.style.transition = 'clip-path 440ms cubic-bezier(.16,1,.3,1)';
+    requestAnimationFrame(function(){ wash.style.clipPath = 'circle(150% at var(--wx) var(--wy))'; });
+    checkPath.style.transition = 'stroke-dashoffset 220ms cubic-bezier(.4,0,.2,1) 40ms';
+    requestAnimationFrame(function(){ checkPath.style.strokeDashoffset = '0'; });
+    playChime();
+
+    setTimeout(function(){
+      status.textContent = 'Transition — shrinking into mini-card';
+      card.style.transition = 'opacity 260ms ease';
+      card.style.opacity = '0';
+      setTimeout(function(){
+        card.style.display = 'none';
+        row.style.display = 'flex';
+        row.style.opacity = '0';
+        requestAnimationFrame(function(){
+          row.style.transition = 'opacity 220ms ease';
+          row.style.opacity = '1';
+        });
+
+        setTimeout(function(){
+          status.textContent = 'Celebration — minting';
+          miniCard.classList.add('reward');
+          setTimeout(function(){ miniCard.classList.remove('reward'); }, 800);
+          setTimeout(function(){ status.textContent = 'Done — confirmed'; }, 800);
+        }, 100);
+      }, 280);
+    }, 650);
+  });
+
+  replay.addEventListener('click', function(){
+    done = false;
+    status.textContent = 'Tap the circle';
+    card.style.cssText = '';
+    row.style.cssText = 'display:none;';
+    wash.style.cssText = '';
+    checkPath.style.cssText = 'stroke-dasharray:20; stroke-dashoffset:20;';
+    miniCard.classList.remove('reward');
+  });
+})();
+</script>

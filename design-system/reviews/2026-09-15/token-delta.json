@@ -1,0 +1,22 @@
+{
+  "20-app-shell.css": {
+    "font-size": -3,
+    "legacy": -6,
+    "font-size-off": -3,
+    "tokens": 16
+  },
+  "30-main-events.css": {
+    "tokens": 9
+  },
+  "35-timeline-view.css": {
+    "font-size": -7,
+    "font-size-off": -7,
+    "tokens": 25
+  },
+  "70-admin-settings.css": {
+    "font-size": -1,
+    "legacy": -2,
+    "font-size-off": -1,
+    "tokens": 8
+  }
+}

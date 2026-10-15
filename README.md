@@ -23,6 +23,18 @@ Licence: **Apache License 2.0**.
 
 Polls, tasks, card decks, guest share microsites, and in-app billing are not part of this tree.
 
+## Design
+
+New UI follows [design-system/](design-system/README.md). Colours, sizes, radii, shadows, layers, and motion come from the tokens in `phlip-web/public/styles/00-foundation.css`, not from raw values in component CSS.
+
+Before merging a UI change, run:
+
+```bash
+python tools/design_token_audit.py --baseline tools/design_token_baseline.json
+```
+
+The audit fails if any stylesheet gains raw values. Older specs that still mention tasks, card decks, or share microsites do not bring those features back.
+
 ## Build
 
 See [BUILD.md](BUILD.md).
